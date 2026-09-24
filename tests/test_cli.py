@@ -205,6 +205,7 @@ def test_rapid_config_edits_always_read_current_source(tmp_path):
 
 
 def test_typer_help_and_invalid_arguments():
+    from rich.text import Text
     from typer.testing import CliRunner
 
     from jevotron.cli import app
@@ -212,7 +213,8 @@ def test_typer_help_and_invalid_arguments():
     runner = CliRunner()
     result = runner.invoke(app, ["scan", "--help"])
     assert result.exit_code == 0
-    assert "--field" in result.output and "--warnings-only" in result.output
+    help_text = Text.from_ansi(result.output).plain
+    assert "--field" in help_text and "--warnings-only" in help_text
     for args in (
         ["scan", "data.csv", "--limit", "0"],
         ["scan", "data.csv", "--output-format", "xml"],
