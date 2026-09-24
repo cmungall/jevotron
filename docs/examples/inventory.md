@@ -50,3 +50,10 @@ jevotron scan items.yaml --id-column id --field /quantity \
 ```
 
 This is a different assessment request and creates separate cache records.
+
+## Record review decisions offline
+
+The [human review workflow](../guides/review.md) imports this captured report with
+its original source and config, presents full entry context, and saves field-level
+decisions. The downloadable example exports the two known errors as explicitly
+selected exemplars and verifies them with `preview`, without an API key.

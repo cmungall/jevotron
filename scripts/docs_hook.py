@@ -227,10 +227,13 @@ def on_page_markdown(markdown, page, config, files):
         return markdown
     root = get_command(app)
     sections = []
-    for name, command in [
-        ("jevotron", root),
-        *[(f"jevotron {n}", c) for n, c in root.commands.items()],
-    ]:
+
+    def commands(command, name):
+        yield name, command
+        for child_name, child in getattr(command, "commands", {}).items():
+            yield from commands(child, f"{name} {child_name}")
+
+    for name, command in commands(root, "jevotron"):
         with command.make_context(name, [], resilient_parsing=True) as context:
             sections.extend(
                 [

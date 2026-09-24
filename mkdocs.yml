@@ -62,6 +62,7 @@ nav:
   - Workflows:
       - Agent skills: guides/agents.md
       - Review & export: guides/reports.md
+      - Human review & exemplars: guides/review.md
       - Cache & repeat runs: guides/cache.md
       - Shell pipelines: guides/shell.md
       - Project configuration: guides/config.md
