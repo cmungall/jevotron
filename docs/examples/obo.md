@@ -1,46 +1,67 @@
 # Measurement units / OBO
 
-This synthetic ontology has three stanzas. One incorrectly defines a kilogram
-as a unit of time. Each stanza is assessed independently.
-
-!!! important "API key required"
-    Set `export TYPESAFE_API_KEY="your-api-key"` with a key from the
-    [TypeSafe dashboard](https://console.typesafe.ai/).
-    [Full setup instructions](../quickstart.md#set-your-api-key).
-
-## Get the files
-
-Download [units.obo](../downloads/units/units.obo), or use
-`examples/units/units.obo` in a checkout. `DEMO` identifiers are local examples,
-not identifiers from the Unit Ontology.
+The [units.obo source on GitHub](https://github.com/cmungall/jevotron/blob/main/examples/units/units.obo)
+contains three synthetic terms: metre, kilogram, and second. `DEMO` identifiers
+are local examples, not identifiers from the Unit Ontology. The kilogram stanza
+deliberately contains an incorrect definition.
 
 ## Scan definitions and synonyms
 
-Synonyms may occur a different number of times in each stanza. The small
-[example config](../downloads/units/jev_config.py) selects all existing definitions
-and synonyms. Put it beside `units.obo`:
+The [example config on GitHub](https://github.com/cmungall/jevotron/blob/main/examples/units/jev_config.py)
+selects every definition and synonym in each stanza. The entire stanza, including
+its name, is supplied as context. Only the selected fields receive scores.
+
+OBO tags become lists, even when a tag occurs only once: `/def/0` is the first
+definition, and `/synonym/0` and `/synonym/1` are separate synonyms. The config
+selects the fields that actually exist, so the metre stanza's two synonyms and
+the other stanzas' single synonyms are all assessed.
+
+From a repository checkout, inspect the requests without making an API call:
 
 ```sh
+cd examples/units
 jevotron preview units.obo --config jev_config.py
+```
+
+Then scan with the same config. An uncached scan needs a
+[configured API key](../quickstart.md#set-your-api-key):
+
+```sh
 jevotron scan units.obo --config jev_config.py
 ```
 
-Repeated synonyms remain separate fields, such as `/synonym/0` and `/synonym/1`.
-There is no graph traversal or related-stanza retrieval in v1.
+The guidance asks whether definitions and synonyms match the named measurement
+unit. This example assesses each stanza independently; its config supplies no
+related stanzas or ontology graph.
 
 ## Actual output
 
-Captured from the config-based command above, using saved Jev assessments with
-original dates and probabilities. These are actual results, not guaranteed
-scores for future runs.
+The following output was captured from that command while replaying three cached
+Jev assessments. `cached: true` and the original assessment dates are preserved.
+An uncached run can produce different probabilities.
 
-{{ results:units }}
+{{ obo_results }}
 
-[Download the actual warning CSV](../assets/results/units-warnings.csv), or export it:
+The default warning threshold is **0.5**. In this result, `/def/0` crosses that
+threshold; `/synonym/0` does not. The stanza is marked as a warning because at
+least one selected field crosses the threshold. The result contains labels and
+probabilities; the original stanza above provides the context for reviewing them.
+
+The complete [three-entry JSONL output](https://github.com/cmungall/jevotron/blob/main/docs/assets/results/units.jsonl)
+and [terminal summary](https://github.com/cmungall/jevotron/blob/main/docs/assets/results/units-summary.txt)
+are available on GitHub.
+
+## Export warning entries
 
 ```sh
 jevotron scan units.obo --config jev_config.py --warnings-only --output-format csv -o warnings.csv
 ```
+
+The [actual warning CSV](https://github.com/cmungall/jevotron/blob/main/docs/assets/results/units-warnings.csv)
+contains both assessed fields of the kilogram stanza, including the normal `kg`
+synonym. `--warnings-only` filters entries, so it preserves the other assessed
+fields of each warning entry for review. With the same inputs and config, this
+export reuses the cached assessments.
 
 ## Select just the definition without a config
 
