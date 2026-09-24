@@ -13,7 +13,8 @@ from mkdocs.structure.files import File
 from typer.main import get_command
 
 from jevotron.cli import app
-from jevotron.parsers import FORMATS
+from jevotron.models import resolve
+from jevotron.parsers import FORMATS, OBO
 
 ROOT = Path(__file__).resolve().parents[1]
 FORMAT_PREVIEWS = {}
@@ -193,7 +194,64 @@ def _results(match):
     return "\n".join(lines)
 
 
+def _obo_results():
+    """Show captured output beside the exact source stanza it assessed."""
+    source = ROOT / "examples/units/units.obo"
+    source_lines = source.read_text().splitlines()
+    chunks = list(OBO()(source))
+    stanzas = {}
+    for index, chunk in enumerate(chunks):
+        start = int(chunk.source.rsplit(":", 1)[1]) - 1
+        end = (
+            int(chunks[index + 1].source.rsplit(":", 1)[1]) - 1
+            if index + 1 < len(chunks)
+            else len(source_lines)
+        )
+        stanzas[chunk.id] = (chunk, start, "\n".join(source_lines[start:end]).rstrip())
+    folder = ROOT / "docs/assets/results"
+    rows = [
+        json.loads(line) for line in (folder / "units.jsonl").read_text().splitlines()
+    ]
+    lines = [
+        "**Terminal summary (stderr):**",
+        "",
+        "```text",
+        (folder / "units-summary.txt").read_text().rstrip(),
+        "```",
+    ]
+    for row in rows:
+        chunk, start, stanza = stanzas[row["id"]]
+        if row["source"] != f"{source.name}:{start + 1}" or any(
+            resolve(chunk.data, field["path"]) != field["value"]
+            for field in row["fields"]
+        ):
+            raise ValueError("Captured OBO results no longer match the example source")
+        if not row["warning"]:
+            continue
+        lines.extend(
+            [
+                "",
+                f"### Warning: {row['id']} — {chunk.data['name'][0]}",
+                "",
+                f"Original stanza at `{row['source']}`:",
+                "",
+                "```text",
+                stanza,
+                "```",
+                "",
+                "**Actual JSONL result for this stanza (formatted for readability):**",
+                "",
+                "```json",
+                json.dumps(row, indent=2, ensure_ascii=False),
+                "```",
+            ]
+        )
+    return "\n".join(lines)
+
+
 def on_page_markdown(markdown, page, config, files):
+    if "{{ obo_results }}" in markdown:
+        markdown = markdown.replace("{{ obo_results }}", _obo_results())
     markdown = re.sub(r"\{\{ format_example:(\w+) \}\}", _format_example, markdown)
     markdown = re.sub(
         r"\{\{ results:(airports|inventory|units) \}\}", _results, markdown
