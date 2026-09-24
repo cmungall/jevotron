@@ -13,6 +13,7 @@ from typing import Any
 
 import yaml
 
+from jevotron.databases import DuckDB, SQLite, detect_database
 from jevotron.models import Chunk, pointer_key, resolve
 
 
@@ -414,6 +415,11 @@ class FormatSpec:
     factory: Callable
     summary: str
     options: tuple[FormatOption, ...] = ()
+    text: bool = True
+
+    @property
+    def all_options(self) -> tuple[FormatOption, ...]:
+        return (ENCODING, *self.options) if self.text else self.options
 
 
 ENCODING = FormatOption(
@@ -429,6 +435,20 @@ QUOTECHAR = FormatOption("quotechar", '"', "Single quoting character for cells."
 # This small catalog drives detection, CLI help, and the documentation reference.
 # Local extensions still use ordinary callables through Config(parser=...).
 FORMATS = (
+    FormatSpec(
+        "sqlite",
+        (".sqlite", ".sqlite3", ".db", ".db3"),
+        SQLite,
+        "Each row of every user table; columns are fields. Detected by file header.",
+        text=False,
+    ),
+    FormatSpec(
+        "duckdb",
+        (".duckdb", ".ddb"),
+        DuckDB,
+        "Each row of every user table; columns are fields. Detected by file header.",
+        text=False,
+    ),
     FormatSpec(
         "csv",
         (".csv",),
@@ -537,6 +557,8 @@ def for_path(
     """Infer a built-in parser, or select one explicitly, with validated options."""
     path = Path(path)
     if format is None:
+        format = detect_database(path)
+    if format is None:
         suffix = (
             path.with_suffix("") if path.suffix.lower() == ".gz" else path
         ).suffix.lower()
@@ -547,7 +569,11 @@ def for_path(
             "or supply a parser in --config"
         )
     spec = format_spec(format)
-    values = {o.name: o.default for o in (ENCODING, *spec.options)}
+    if not spec.text and path.suffix.lower() == ".gz" and detect_database(path) is None:
+        raise ValueError(
+            "Compressed databases are not supported; decompress the file first"
+        )
+    values = {o.name: o.default for o in spec.all_options}
     for key, value in (options or {}).items():
         if key not in values:
             raise ValueError(
@@ -558,8 +584,9 @@ def for_path(
         values[key] = value
     if values.get("delimiter") in ("tab", "\\t"):
         values["delimiter"] = "\t"
-    try:
-        io.TextIOWrapper(io.BytesIO(), encoding=values["encoding"]).close()
-    except LookupError as exc:
-        raise ValueError(f"Unknown text encoding: {values['encoding']!r}") from exc
+    if spec.text:
+        try:
+            io.TextIOWrapper(io.BytesIO(), encoding=values["encoding"]).close()
+        except LookupError as exc:
+            raise ValueError(f"Unknown text encoding: {values['encoding']!r}") from exc
     return spec.factory(**values)

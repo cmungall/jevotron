@@ -209,7 +209,7 @@ def on_page_markdown(markdown, page, config, files):
         lines.extend(["", "### Parser options", ""])
         lines.extend(
             [
-                "All formats accept `encoding=utf-8-sig` by default (UTF-8 with an optional BOM).",
+                "Text formats accept `encoding=utf-8-sig` by default (UTF-8 with an optional BOM).",
                 "Use, for example, `--format-option encoding=latin-1` for a legacy file.",
                 "",
                 "| Format | Option | Default | Meaning |",

@@ -1,7 +1,7 @@
 # jevotron
 
 **Find the fields worth a second look.** A CLI for field-level anomaly detection
-in tabular, structured, and text files, powered by [Jev](https://docs.typesafe.ai/api).
+in tabular, structured, and text files, SQLite, and DuckDB, powered by [Jev](https://docs.typesafe.ai/api).
 
 Preview the input, scan every entry, and export a focused review queue. Each
 chunk is independent and sees the same optional guidance and exemplars.
@@ -26,6 +26,20 @@ jevotron scan examples/airports/spiked.csv --guidance "Check airport locations."
 ```
 
 `jt` is a short alias for `jevotron`; both accept the same commands and options.
+Database files are detected by their
+headers, even with an unfamiliar extension. No export or database configuration
+is needed; DuckDB support is included in the installation:
+
+```sh
+jt tables inventory.db                          # List tables, columns, and keys
+jt preview inventory.db                         # Preview rows, no API key
+jt scan warehouse.duckdb --table products        # Select a table
+jt scan inventory.db                            # Scan all user tables
+```
+
+Databases are opened read-only. Each row is an entry, each column is a field,
+and primary keys supply table-qualified IDs. See the
+[database guide](docs/guides/databases.md) for examples and selection rules.
 
 **API key:** Live scans require `TYPESAFE_API_KEY` from the
 [TypeSafe dashboard](https://console.typesafe.ai/). An existing environment
@@ -81,6 +95,7 @@ Open **http://127.0.0.1:8000**. Build static files with
 
 - [First scan](docs/quickstart.md)
 - [Files and field selection](docs/guides/files.md)
+- [SQLite and DuckDB](docs/guides/databases.md)
 - [File format reference](docs/reference/formats.md) — CSV/TSV, JSON/JSONL, YAML,
   TOML, text/Markdown, OBO, FASTA, GMT, and gzip; defaults and parser options
 - [Guidance and examples](docs/guides/guidance.md)
