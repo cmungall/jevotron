@@ -18,8 +18,8 @@ dev = ["pytest>=8", "ruff>=0.9"]
 docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.6,<10"]
 
 [project.scripts]
-jevotron = "jevotron.cli:main"
 jt = "jevotron.cli:main"
+jevotron = "jevotron.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

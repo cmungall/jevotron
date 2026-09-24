@@ -60,6 +60,7 @@ nav:
       - SQLite & DuckDB: guides/databases.md
       - Guidance & examples: guides/guidance.md
   - Workflows:
+      - Agent skills: guides/agents.md
       - Review & export: guides/reports.md
       - Cache & repeat runs: guides/cache.md
       - Shell pipelines: guides/shell.md
