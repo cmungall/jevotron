@@ -335,3 +335,19 @@ def test_database_config_and_cli_override(database, tmp_path, capsys):
     assert row["fields"] == ["/value"]
     assert main([*args, "--table", "items"]) == 1
     assert "custom config parser" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("alias", ["direct", "symlink", "hardlink"])
+def test_preview_output_preserves_database(database, tmp_path, capsys, alias):
+    _, path, _ = database
+    target = path
+    if alias != "direct":
+        target = tmp_path / "report.jsonl"
+        if alias == "symlink":
+            target.symlink_to(path)
+        else:
+            target.hardlink_to(path)
+    original = path.read_bytes()
+    assert main(["preview", str(path), "--output", str(target)]) == 1
+    assert "Output must not overwrite" in capsys.readouterr().err
+    assert path.read_bytes() == original

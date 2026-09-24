@@ -377,3 +377,78 @@ def test_guidance_file_is_protected_from_output_overwrite(input_file, tmp_path, 
     )
     assert guidance.read_text() == "Preserve me"
     assert "must not overwrite" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("command", ["preview", "scan"])
+@pytest.mark.parametrize("alias", ["direct", "symlink", "hardlink"])
+@pytest.mark.parametrize(
+    "protected", ["input", "config", "guidance", "exemplars", "cache"]
+)
+def test_output_preserves_every_protected_file(
+    tmp_path, monkeypatch, capsys, command, alias, protected
+):
+    monkeypatch.chdir(tmp_path)
+    source = tmp_path / "data.csv"
+    source.write_text("id,value\na,ok\n")
+    config = tmp_path / "config.py"
+    config.write_text("from jevotron import Config\nconfig = Config()\n")
+    guidance = tmp_path / "rules.md"
+    guidance.write_text("Preserve this guidance.")
+    exemplars = tmp_path / "examples.json"
+    exemplars.write_text('[{"value": "valid"}]')
+    # Preview has no --cache flag but still protects the default cache path.
+    cache = tmp_path / ".jevotron" / "cache.sqlite3"
+    cache.parent.mkdir()
+    cache.write_bytes(b"Existing cache must survive before any cache access")
+    files = dict(
+        input=source, config=config, guidance=guidance, exemplars=exemplars, cache=cache
+    )
+    originals = {name: path.read_bytes() for name, path in files.items()}
+    target = files[protected]
+    if alias != "direct":
+        output = tmp_path / "report.jsonl"
+        if alias == "symlink":
+            output.symlink_to(target)
+        else:
+            output.hardlink_to(target)
+    else:
+        output = target
+    args = [
+        command,
+        str(source),
+        "--config",
+        str(config),
+        "--guidance-file",
+        str(guidance),
+        "--exemplars",
+        str(exemplars),
+        "--output",
+        str(output),
+    ]
+    if command == "scan":
+        args.extend(["--cache", str(cache)])
+    assert main(args) == 1
+    result = capsys.readouterr()
+    assert "Output must not overwrite" in result.err
+    assert not result.out
+    assert {name: path.read_bytes() for name, path in files.items()} == originals
+
+
+@pytest.mark.parametrize("command", ["preview", "scan"])
+@pytest.mark.parametrize("existing_output", [False, True])
+def test_distinct_output_files_are_writable(
+    input_file, tmp_path, fake, monkeypatch, capsys, command, existing_output
+):
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    output = tmp_path / "reports" / "results.jsonl"
+    if existing_output:
+        output.parent.mkdir()
+        output.write_text("Previous report")
+    original = input_file.read_bytes()
+    args = [command, str(input_file), "--output", str(output)]
+    if command == "scan":
+        args.append("--no-cache")
+    assert main(args) == 0
+    capsys.readouterr()
+    assert len([json.loads(line) for line in output.read_text().splitlines()]) == 3
+    assert input_file.read_bytes() == original

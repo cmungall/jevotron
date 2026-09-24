@@ -58,6 +58,10 @@ The threshold determines warnings independently of the chosen label.
     Nested field values and probabilities are JSON text. `--warnings-only`
     retains all assessed fields of warning entries for review.
 
+Output files must be distinct from the input, Python config, guidance document,
+exemplars, and assessment cache. Both preview and scan reject symlink or hardlink
+aliases of those files before opening the output.
+
 `assessed_at` is the original assessment timestamp. `usage` on cached results
 describes the original call and does not represent new token usage.
 
