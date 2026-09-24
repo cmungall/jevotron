@@ -20,6 +20,13 @@ def _key(entry_id, path, request):
     return hashlib.sha256(json_text([entry_id, path, request]).encode()).hexdigest()
 
 
+def _context_data(context):
+    """Reference reports add provenance around the model-visible context data."""
+    if isinstance(context, dict) and "data" in context and "provenance" in context:
+        return context["data"]
+    return context
+
+
 def protect_store(store: Path, *inputs: Path | None):
     for path in inputs:
         if path is not None and (
@@ -45,6 +52,7 @@ def read_report(report: Path, *, source=None, config=None, cache=None) -> list[d
                 rows.append(row)
     entries = {}
     contexts = {}
+    source_contexts = {}
     if source is not None:
         settings = load_config(config) if config else Config()
         parser = settings.parser or for_path(source)
@@ -54,6 +62,8 @@ def read_report(report: Path, *, source=None, config=None, cache=None) -> list[d
                 entries[item["request_hash"]] = item["request"]["state"]["entry"]
                 if "context" in item["request"]["state"]:
                     contexts[item["request_hash"]] = item["request"]["state"]["context"]
+                    if "context" in item:
+                        source_contexts[item["request_hash"]] = item["context"]
         finally:
             if hasattr(chunks, "close"):
                 chunks.close()
@@ -103,13 +113,21 @@ def read_report(report: Path, *, source=None, config=None, cache=None) -> list[d
             )
         key = row.get("request_hash")
         if key in contexts:
-            if "context" in row and json_text(row["context"]) != json_text(
-                contexts[key]
-            ):
-                raise ValueError(
-                    f"Result {row.get('id')!r} disagrees with matching assessment context"
-                )
-            row["context"] = contexts[key]
+            if "context" in row:
+                if json_text(_context_data(row["context"])) != json_text(contexts[key]):
+                    raise ValueError(
+                        f"Result {row.get('id')!r} disagrees with matching assessment context"
+                    )
+                # Keep the assessment's original provenance, even if source
+                # files moved or were reordered since the model request.
+            elif key in source_contexts:
+                row["context"] = source_contexts[key]
+            else:
+                row["context"] = {
+                    "data": contexts[key],
+                    "provenance": None,
+                    "provenance_status": "unavailable from cached model request",
+                }
     return rows
 
 
@@ -246,8 +264,8 @@ class ReviewStore:
                     previous = json.loads(existing[0])
                     if json_text(previous["entry"]) != json_text(
                         item["entry"]
-                    ) or json_text(previous.get("context")) != json_text(
-                        item.get("context")
+                    ) or json_text(_context_data(previous.get("context"))) != json_text(
+                        _context_data(item.get("context"))
                     ):
                         raise ValueError(
                             "Same request hash has different entry or context; import an authentic scan report"
@@ -377,10 +395,11 @@ class ReviewStore:
                 raise ValueError(
                     f"Label {label!r} is absent from decision {ident}; set --normal-label and --anomaly-label to your configured labels"
                 )
-            entry_key = json_text(item["entry"])
-            exemplar = grouped.setdefault(
-                entry_key, {"entry": item["entry"], "assessment": {}}
-            )
+            example = {"entry": item["entry"]}
+            if "context" in item:
+                example["context"] = _context_data(item["context"])
+            entry_key = json_text(example)
+            exemplar = grouped.setdefault(entry_key, {**example, "assessment": {}})
             labels = exemplar["assessment"]
             path = item["field_path"]
             if path in labels and labels[path] != label:

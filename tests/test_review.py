@@ -392,11 +392,13 @@ def test_legacy_cache_context_recovery_checks_request_hash(tmp_path, fake):
             report["assessed_at"],
         )
     recovered = read_report(path, cache=cache)
-    assert recovered[0]["context"] == context
+    assert recovered[0]["context"]["data"] == context
+    assert recovered[0]["context"]["provenance"] is None
+    assert "unavailable" in recovered[0]["context"]["provenance_status"]
     with ReviewStore(tmp_path / "review.db") as queue:
         queue.import_results(recovered)
         decision = queue.decide(report["id"], "/value", "confirmed-error")
-        assert decision["context"] == context
+        assert decision["context"] == recovered[0]["context"]
     with Cache(cache) as saved:
         request["state"]["guidance"] = "tampered"
         saved.put(
@@ -458,3 +460,112 @@ def test_existing_empty_database_is_not_initialized_for_review(tmp_path):
     result = invoke("list", "--store", path)
     assert result.exit_code == 1 and "separate review store" in result.output
     assert path.read_bytes() == original
+
+
+def reference_context(limit=4, location="nodes.json:entry:1"):
+    return {
+        "data": [
+            {
+                "name": "rules",
+                "kind": "graph",
+                "nodes": [{"id": "rule", "data": {"limit": limit}}],
+                "edges": [],
+            }
+        ],
+        "provenance": [
+            {
+                "name": "rules",
+                "files": ["nodes.json"],
+                "nodes": [{"id": "rule", "source": location}],
+            }
+        ],
+    }
+
+
+def test_reference_source_and_cache_recovery_preserve_envelope(
+    tmp_path, fake, monkeypatch
+):
+    from jevotron.cache import Cache
+    from jevotron.runner import make_request, request_hash
+
+    row = assessment(fake, context=reference_context())
+    request, _ = make_request(
+        Chunk(row["id"], row["entry"], fields=["/value"]), Config(guidance="first")
+    )
+    request["state"]["context"] = row["context"]["data"]
+    row["request_hash"] = request_hash(request)
+    # A current preview may have different line locations without changing input data.
+    preview_item = {
+        "request_hash": row["request_hash"],
+        "request": request,
+        "context": reference_context(location="nodes.json:entry:2"),
+    }
+    monkeypatch.setattr("jevotron.review.preview", lambda *args: iter([preview_item]))
+    source = tmp_path / "data.csv"
+    source.write_text("value\nBAD\n")
+    path = tmp_path / "results.jsonl"
+    path.write_text(json_text(row))
+    assert read_report(path, source=source)[0]["context"] == row["context"]
+    cache = tmp_path / "cache.db"
+    with Cache(cache) as saved:
+        saved.put(
+            row["request_hash"], request, fake.evaluate(request), row["assessed_at"]
+        )
+    assert read_report(path, cache=cache)[0]["context"] == row["context"]
+    legacy = {
+        key: value for key, value in row.items() if key not in ("entry", "context")
+    }
+    path.write_text(json_text(legacy))
+    assert read_report(path, source=source)[0]["context"] == preview_item["context"]
+    from_cache = read_report(path, cache=cache)[0]["context"]
+    assert (
+        from_cache["data"] == row["context"]["data"]
+        and from_cache["provenance"] is None
+    )
+    assert "unavailable" in from_cache["provenance_status"]
+
+
+def test_provenance_changes_keep_reviews_and_original_decision_snapshot(tmp_path, fake):
+    first = assessment(fake, context=reference_context())
+    with ReviewStore(tmp_path / "reviews.db") as queue:
+        queue.import_results([first])
+        decision = queue.decide("stable-id", "/value", "confirmed-error")
+        moved = copy.deepcopy(first)
+        moved["context"] = reference_context(location="nodes.json:entry:2")
+        queue.import_results([moved])
+        item = queue.items()[0]
+        assert item["status"] == "confirmed-error"
+        assert item["context"] == moved["context"]
+        assert item["review"]["context"] == first["context"]
+        assert queue.decisions() == [decision]
+
+
+def test_exemplars_keep_context_data_and_group_by_evidence_not_provenance(
+    tmp_path, fake
+):
+    first = assessment(fake, context=reference_context())
+    second = copy.deepcopy(first)
+    second["id"] = "different-reporting-id"
+    second["context"] = reference_context(limit=10)
+    # The model-visible reference change results in a distinct request identity.
+    second["request_hash"] = "a" * 64
+    same_evidence = copy.deepcopy(first)
+    same_evidence["id"] = "same-evidence-different-location"
+    same_evidence["context"] = reference_context(location="nodes.json:entry:2")
+    with ReviewStore(tmp_path / "reviews.db") as queue:
+        queue.import_results([first, second, same_evidence])
+        error = queue.decide(first["id"], "/value", "confirmed-error")
+        valid = queue.decide(second["id"], "/value", "valid-exception")
+        same = queue.decide(same_evidence["id"], "/value", "confirmed-error")
+        exemplars = queue.exemplars(
+            [error["decision_id"], valid["decision_id"], same["decision_id"]]
+        )
+        assert len(exemplars) == 2
+        assert exemplars[0]["context"] == first["context"]["data"]
+        assert exemplars[1]["context"] == second["context"]["data"]
+        assert exemplars[0]["assessment"] == {"/value": "ANOMALY"}
+        assert exemplars[1]["assessment"] == {"/value": "NORMAL"}
+        Config(exemplars=exemplars).validate()
+        contradiction = queue.decide(same_evidence["id"], "/value", "valid-exception")
+        with pytest.raises(ValueError, match="Contradictory selections"):
+            queue.exemplars([error["decision_id"], contradiction["decision_id"]])

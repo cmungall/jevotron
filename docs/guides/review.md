@@ -65,7 +65,11 @@ the current request has changed.
 contains `decision_id`, `entry_id`, `field_path`, original `value`, full `entry`,
 `request_hash`, `assessed_at`, `model`, `source`, `warning`, original field
 `assessment` (including probabilities), human `decision`, `note`, and `reviewed_at`.
-Optional assessment `context` is preserved. Decisions form an append-only history:
+Optional assessment `context` is preserved, including reference provenance when
+available. Source/config recovery retains the preview context envelope. A model
+cache stores only model-visible reference data; when it is the only source of
+context, the review marks its provenance as unavailable rather than inventing
+file locations. Decisions form an append-only history:
 recording another decision adds a record rather than rewriting the original one.
 
 ## Reuse reviews and reconsider changed requests
@@ -76,6 +80,8 @@ reviewed fields then appear as `reconsider`, with no inherited approval. Use
 `review list --unreviewed` to find them and `review list --history` to inspect
 superseded assessments. Reassessing the same request retains its decisions; each
 human record still contains the assessment provenance seen at the time of review.
+Moving or reordering unchanged reference files can update current provenance
+without invalidating a decision, because the model-visible context is unchanged.
 
 An import updates the entries present in that report. Entries absent from a partial
 or warnings-only report remain in the store. Use stable IDs and the same project
@@ -93,7 +99,10 @@ jt preview examples/inventory/items.yaml --config examples/inventory/jev_config.
 
 For a fresh store, the first two decisions have IDs 1 and 2. Export maps confirmed
 errors to `ANOMALY` and valid exceptions to `NORMAL`, preserving the original entry
-and selected field paths. For custom classification labels, supply `--normal-label`
+and selected field paths. If the judgment used reference context, that model-visible
+data is included as `context` in the exemplar; path-only provenance is excluded.
+Examples are grouped by entry and reference data, so differing evidence stays
+separate while mere file-location changes coalesce. For custom classification labels, supply `--normal-label`
 and `--anomaly-label`. Deferred decisions, superseded requests, missing IDs, and
 contradictory labels for the same entry and field are rejected with an explanation.
 Nothing is selected automatically, and export does not change the original data.
