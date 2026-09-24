@@ -83,6 +83,8 @@ and give me a review queue with source locations.”
 
 ## Documentation
 
+Read the [published documentation](https://cmungall.github.io/jevotron/).
+
 A Material for MkDocs site with light/dark modes, search, downloadable examples,
 and a CLI reference generated from the actual commands:
 
@@ -91,7 +93,8 @@ uv run --group docs mkdocs serve
 ```
 
 Open **http://127.0.0.1:8000**. Build static files with
-`uv run --group docs mkdocs build --strict`. Public hosting is not configured yet.
+`uv run --group docs mkdocs build --strict`. Changes on `main` are published to
+GitHub Pages by the documentation workflow.
 
 - [First scan](docs/quickstart.md)
 - [Files and field selection](docs/guides/files.md)
