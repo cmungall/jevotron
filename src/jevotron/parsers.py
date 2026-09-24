@@ -118,6 +118,26 @@ _YamlLoader.add_constructor(
 )
 
 
+def _yaml_documents(stream):
+    loader = _YamlLoader(stream)
+    try:
+        doc_index = 0
+        while loader.check_data():
+            doc_index += 1
+            node = loader.get_node()
+            # An absent root and explicit null both construct to None. The
+            # absent root is the null scalar with no source text of its own.
+            if (
+                isinstance(node, yaml.ScalarNode)
+                and node.tag == "tag:yaml.org,2002:null"
+                and node.start_mark.index == node.end_mark.index
+            ):
+                continue
+            yield doc_index, loader.construct_document(node)
+    finally:
+        loader.dispose()
+
+
 @dataclass
 class YAML:
     id_column: str | None = None
@@ -127,11 +147,7 @@ class YAML:
 
     def __call__(self, path: Path) -> Iterable[Chunk]:
         with _open_text(path, self.encoding) as stream:
-            for doc_index, data in enumerate(
-                yaml.load_all(stream, Loader=_YamlLoader), 1
-            ):
-                if data is None:
-                    continue
+            for doc_index, data in _yaml_documents(stream):
                 entries = _entries(data, self.records)
                 for index, entry in enumerate(entries, 1):
                     fallback = f"{doc_index}:{index}"
