@@ -130,7 +130,8 @@ quoted identifiers stay strings, quantities stay numbers, and dates become text.
 {{ format_example:yaml }}
 
 YAML accepts multiple `---` documents, including `.yamll`. Empty documents are
-skipped; `records` is applied separately to each nonempty document. Mapping keys
+skipped; explicit null documents (`null` or `~`) are scalar entries. `records` is
+applied separately to each nonempty document. Mapping keys
 must be strings, and duplicate keys are rejected. Standard YAML merge overrides
 are supported. YAML loads one document at a time.
 
