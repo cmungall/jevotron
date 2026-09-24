@@ -1,0 +1,6 @@
+{
+  "products": [
+    {"sku": "001", "name": "Notebook", "quantity": 12},
+    {"sku": "002", "name": "USB-C cable", "quantity": -3}
+  ]
+}

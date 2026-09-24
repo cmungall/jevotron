@@ -1,0 +1,102 @@
+{
+  "csv": {
+    "file": "products.csv",
+    "language": "csv",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "tsv": {
+    "file": "readings.tsv",
+    "language": "text",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "yaml": {
+    "file": "inventory.yaml",
+    "language": "yaml",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "json": {
+    "file": "catalog.json",
+    "language": "json",
+    "args": [
+      "--format-option",
+      "records=/products",
+      "--limit",
+      "1"
+    ]
+  },
+  "toml": {
+    "file": "services.toml",
+    "language": "toml",
+    "args": [
+      "--format-option",
+      "records=/services",
+      "--limit",
+      "1"
+    ]
+  },
+  "jsonl": {
+    "file": "events.jsonl",
+    "language": "json",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "text": {
+    "file": "runbook.txt",
+    "language": "text",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "markdown": {
+    "file": "procedures.md",
+    "language": "markdown",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "textlines": {
+    "file": "requests.log",
+    "language": "text",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "obo": {
+    "file": "units.obo",
+    "language": "text",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "fasta": {
+    "file": "sequences.fasta",
+    "language": "text",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  },
+  "gmt": {
+    "file": "pathways.gmt",
+    "language": "text",
+    "args": [
+      "--limit",
+      "1"
+    ]
+  }
+}

@@ -1,0 +1,76 @@
+site_name: jevotron
+repo_url: https://github.com/cmungall/jevotron
+repo_name: cmungall/jevotron
+site_description: Find the fields worth a second look. Anomaly detection from your terminal.
+strict: true
+theme:
+  name: material
+  language: en
+  font: false
+  logo: assets/mark.svg
+  favicon: assets/mark.svg
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.footer
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+plugins:
+  - search
+hooks:
+  - scripts/docs_hook.py
+extra_css:
+  - stylesheets/extra.css
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+nav:
+  - Home: index.md
+  - Get started:
+      - First scan: quickstart.md
+      - Files & field selection: guides/files.md
+      - Guidance & examples: guides/guidance.md
+  - Workflows:
+      - Review & export: guides/reports.md
+      - Cache & repeat runs: guides/cache.md
+      - Shell pipelines: guides/shell.md
+      - Project configuration: guides/config.md
+  - Examples:
+      - Airports · CSV: examples/airports.md
+      - Inventory · YAML: examples/inventory.md
+      - Measurement units · OBO: examples/obo.md
+  - Reference:
+      - CLI commands: reference/cli.md
+      - File formats: reference/formats.md
+  - Advanced:
+      - Custom parsers: advanced/parsers.md
+      - Python integration: advanced/python.md
+      - Documentation development: advanced/docs.md

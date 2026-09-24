@@ -1,0 +1,16 @@
+# Synthetic examples authored for jevotron; not a public source dataset.
+- id: notebook
+  description: A5 paper notebook
+  category: stationery
+  quantity: 12
+  unit_price_usd: 4.50
+- id: cable
+  description: USB-C charging cable
+  category: electronics
+  quantity: -30
+  unit_price_usd: 8.00
+- id: mug
+  description: Ceramic coffee mug
+  category: stationery
+  quantity: 6
+  unit_price_usd: 12.00
