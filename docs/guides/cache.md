@@ -53,7 +53,9 @@ requested model.
 Rerun the same command. Completed entries replay from the cache; unsuccessful
 or malformed API responses are not stored as successful assessments. The CLI
 stops on a permanent API failure and retries transient failures with bounded
-backoff.
+backoff. A request gets at most three attempts. `Retry-After` can specify a delay
+in seconds or an HTTP date; retry waits use that value with a 30-second cap and
+the ordinary backoff as a minimum.
 
 A run consisting entirely of cache hits does not need `TYPESAFE_API_KEY`. Any
 cache miss does. The cache stores full requests and responses for inspection,
