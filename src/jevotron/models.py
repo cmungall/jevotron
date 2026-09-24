@@ -114,6 +114,10 @@ class Result:
     request_hash: str
     cached: bool
     usage: dict[str, Any]
+    context: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        result = asdict(self)
+        if self.context is None:
+            result.pop("context")
+        return result

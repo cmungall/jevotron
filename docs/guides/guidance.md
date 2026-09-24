@@ -25,8 +25,10 @@ Unit prices are in US dollars and must be nonnegative. A zero price is valid
 for a free sample. Category should agree with the item description.
 ```
 
-Every entry receives the same document. V1 assesses each chunk independently;
-it does not retrieve neighboring records or assemble additional context.
+Every entry receives the same document. By default, each chunk is assessed
+independently using only its entry and shared guidance/exemplars.
+[Reference joins and graph context](references.md) can explicitly attach related
+records or an N-hop neighborhood to each independent request.
 
 ## Supply a few exemplars
 

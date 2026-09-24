@@ -40,6 +40,9 @@ CLI guidance, exemplars, model, threshold, field selection, and ID selection
 override the corresponding config or parser behavior. Relative CLI paths use
 your working directory; config-relative paths should use `__file__` as above.
 
+Use `Config(references=[...])` to add exact-key joins or bounded N-hop graph
+context; see [reference configuration](references.md).
+
 ## Customize labels
 
 ```python

@@ -59,6 +59,7 @@ nav:
       - Files & field selection: guides/files.md
       - SQLite & DuckDB: guides/databases.md
       - Guidance & examples: guides/guidance.md
+      - Reference joins & graphs: guides/references.md
   - Workflows:
       - Agent skills: guides/agents.md
       - Review & export: guides/reports.md

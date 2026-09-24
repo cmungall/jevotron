@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from jevotron.context import GraphContext, ReferenceJoin
 from jevotron.models import Chunk, validate_json
 
 Parser = Callable[[Path], Iterable[Chunk]]
@@ -23,8 +24,20 @@ class Config:
     anomaly_label: str = "ANOMALY"
     model: str = "jev-1.13.0"
     threshold: float = 0.5
+    references: list[ReferenceJoin | GraphContext] = field(default_factory=list)
 
     def validate(self) -> None:
+        if not isinstance(self.references, list) or any(
+            not isinstance(spec, (ReferenceJoin, GraphContext))
+            for spec in self.references
+        ):
+            raise ValueError(
+                "Config.references must be a list of ReferenceJoin/GraphContext"
+            )
+        for spec in self.references:
+            spec.validate()
+        if len({spec.name for spec in self.references}) != len(self.references):
+            raise ValueError("Config.references must have distinct names")
         if self.parser is not None and not callable(self.parser):
             raise ValueError("Config.parser must be callable")
         if (

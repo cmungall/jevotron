@@ -1,0 +1,8 @@
+- id: cups
+  description: Box of fragile ceramic cups
+  category: fragile
+  stack_count: 12
+- id: towels
+  description: Box of cotton towels
+  category: textiles
+  stack_count: 6
