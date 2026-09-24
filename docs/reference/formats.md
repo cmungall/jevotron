@@ -216,7 +216,8 @@ the default includes all stanza types. The filter is case-sensitive. Stanzas
 without an `id` receive a line-based fallback ID.
 
 The parser preserves raw tag values, comments, and escapes, and joins continued
-lines. File headers are ignored. It does not resolve identifiers or walk the
+lines. Stanza headers may have trailing `!` comments. File headers are ignored.
+It does not resolve identifiers or walk the
 ontology graph. See the [OBO example with actual scores](../examples/obo.md).
 
 ## FASTA
