@@ -34,9 +34,11 @@ class JevClient:
                     json=payload,
                     headers={"Authorization": f"Bearer {self._key}"},
                 )
-            except httpx.TransportError:
+            except (httpx.TransportError, httpx.DecodingError):
+                # Decoding happens inside post(), before we can inspect the
+                # status. Retry unreadable responses like connection failures.
                 if attempt == 2:
-                    raise JevError("Jev connection failed after 3 attempts") from None
+                    raise JevError("Jev request failed after 3 attempts") from None
                 time.sleep(2**attempt)
                 continue
             if response.status_code == 429 or response.status_code >= 500:
