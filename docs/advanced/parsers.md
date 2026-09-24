@@ -86,6 +86,10 @@ config = Config(parser=parse)
 The parser in a config controls parsing completely; set its options there.
 The CLI rejects `--format` and `--format-option` alongside a custom parser.
 `--field` and `--id-column` still override fields and IDs on its yielded chunks.
+Built-in adapters apply an ID override before validating the configured ID column.
+Custom parser code must successfully yield a chunk before its ID can be replaced.
+ID columns must contain nonempty scalar values; lists, mappings, and nulls are
+rejected consistently in Python parser settings and CLI options.
 This keeps local Python adapters simple: no registration or plugin interface
 is needed, and existing ETL libraries can be used directly.
 

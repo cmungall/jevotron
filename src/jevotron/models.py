@@ -21,6 +21,14 @@ def pointer_key(key: str) -> str:
     return "/" + key.replace("~", "~0").replace("/", "~1")
 
 
+def scalar_id(value: Any) -> str:
+    """Use the same nonempty JSON scalar contract for parser and CLI IDs."""
+    if value is None or not isinstance(value, (str, int, float, bool)) or value == "":
+        raise ValueError("Identifier must select a nonempty scalar field")
+    validate_json(value)
+    return str(value)
+
+
 def resolve(data: Any, pointer: str) -> Any:
     """Resolve an RFC 6901 JSON Pointer; the empty pointer selects the root."""
     if not isinstance(pointer, str) or (pointer and not pointer.startswith("/")):

@@ -335,3 +335,42 @@ def test_database_config_and_cli_override(database, tmp_path, capsys):
     assert row["fields"] == ["/value"]
     assert main([*args, "--table", "items"]) == 1
     assert "custom config parser" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("old_id", [None, ""])
+def test_database_id_override_precedes_validation(
+    database, tmp_path, monkeypatch, capsys, old_id
+):
+    engine, path, connect = database
+    if old_id == "":
+        with closing(connect(str(path))) as connection:
+            connection.execute("ALTER TABLE items ADD COLUMN old_id TEXT DEFAULT ''")
+            connection.execute("ALTER TABLE other ADD COLUMN old_id TEXT DEFAULT ''")
+            connection.commit()
+    from jevotron import Config
+
+    parser = Database(engine, id_column="old_id")
+    config = Config(parser=parser)
+    monkeypatch.setattr("jevotron.cli.load_config", lambda _: config)
+    args = ["preview", str(path), "--config", str(tmp_path / "config.py")]
+    assert main([*args, "--id-column", "id"]) == 0
+    rows = records(capsys)
+    assert [row["id"] for row in rows] == [
+        '"main"."items":key:[1]',
+        '"main"."items":key:[2]',
+        '"main"."other":key:[1]',
+    ]
+    assert parser.id_column == "old_id"
+    assert main(args) == 1
+    assert "identifier" in capsys.readouterr().err.lower()
+
+
+@pytest.mark.parametrize("expression", ["[1, 2]", "{'nested': 1}", "NULL", "''"])
+def test_duckdb_explicit_id_rejects_nonscalar_or_empty(tmp_path, capsys, expression):
+    path = tmp_path / "invalid.duckdb"
+    with closing(duckdb.connect(str(path))) as connection:
+        connection.execute(f"CREATE TABLE items AS SELECT {expression} AS id")
+    with pytest.raises(ValueError, match="nonempty scalar"):
+        list(DuckDB(id_column="id")(path))
+    assert main(["preview", str(path), "--id-column", "id"]) == 1
+    assert not capsys.readouterr().out

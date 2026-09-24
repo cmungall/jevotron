@@ -11,7 +11,7 @@ from uuid import UUID
 
 import duckdb
 
-from jevotron.models import Chunk, json_text
+from jevotron.models import Chunk, json_text, scalar_id
 
 
 def detect_database(path: Path) -> str | None:
@@ -235,14 +235,8 @@ class Database:
                         for name, value in zip(columns, row, strict=True)
                     }
                     values = [data[key] for key in keys]
-                    if self.id_column is not None and (
-                        values[0] is None
-                        or isinstance(values[0], (list, dict))
-                        or values[0] == ""
-                    ):
-                        raise ValueError(
-                            "--id-column must select a nonempty scalar field"
-                        )
+                    if self.id_column is not None:
+                        scalar_id(values[0])
                     # SQLite permits NULL in some PRIMARY KEY declarations.
                     if keys and all(value is not None for value in values):
                         identity = "key:" + json_text(values)

@@ -14,7 +14,7 @@ from typing import Any
 import yaml
 
 from jevotron.databases import DuckDB, SQLite, detect_database
-from jevotron.models import Chunk, pointer_key, resolve
+from jevotron.models import Chunk, pointer_key, resolve, scalar_id
 
 
 def _open_text(path: Path, encoding: str):
@@ -36,7 +36,7 @@ def _id(data: Any, id_column: str | None, fallback: str) -> str:
         or data[id_column] in (None, "")
     ):
         raise ValueError(f"Missing identifier field {id_column!r} at {fallback}")
-    return str(data[id_column])
+    return scalar_id(data[id_column])
 
 
 @dataclass
