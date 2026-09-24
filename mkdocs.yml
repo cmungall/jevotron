@@ -57,6 +57,7 @@ nav:
   - Get started:
       - First scan: quickstart.md
       - Files & field selection: guides/files.md
+      - SQLite & DuckDB: guides/databases.md
       - Guidance & examples: guides/guidance.md
   - Workflows:
       - Review & export: guides/reports.md

@@ -17,12 +17,13 @@ import yaml
 
 from jevotron.client import JevError
 from jevotron.config import Config, load_config
+from jevotron.databases import Database
 from jevotron.models import json_text, pointer_key, resolve
-from jevotron.parsers import ENCODING, FORMATS, for_path, format_spec
+from jevotron.parsers import FORMATS, for_path, format_spec
 from jevotron.runner import preview, scan
 
 app = typer.Typer(
-    help="Find suspicious fields in structured files. Preview, scan, and review warnings.",
+    help="Find suspicious fields in files and databases. Preview, scan, and review warnings.",
     no_args_is_help=True,
     rich_markup_mode="markdown",
     pretty_exceptions_show_locals=False,
@@ -31,7 +32,7 @@ app = typer.Typer(
 InputFile = Annotated[
     Path,
     typer.Argument(
-        help="File to assess; infer format from extension. See 'jevotron formats'."
+        help="File to assess; detect databases by header, other formats by extension."
     ),
 ]
 ConfigFile = Annotated[
@@ -109,6 +110,14 @@ FormatOptions = Annotated[
         rich_help_panel="Input format",
     ),
 ]
+Tables = Annotated[
+    list[str] | None,
+    typer.Option(
+        "--table",
+        help="Database table or view (optionally schema-qualified); repeat to select several. Default: all user tables.",
+        rich_help_panel="Input format",
+    ),
+]
 
 
 class OutputFormat(str, Enum):
@@ -123,6 +132,7 @@ class RunOptions:
     config: Path | None = None
     format: str | None = None
     format_options: list[str] | None = None
+    tables: list[str] | None = None
     guidance: str | None = None
     guidance_file: Path | None = None
     exemplars: Path | None = None
@@ -146,6 +156,7 @@ def preview_command(
     config: ConfigFile = None,
     format: InputFormat = None,
     format_option: FormatOptions = None,
+    table: Tables = None,
     guidance: Guidance = None,
     guidance_file: GuidanceFile = None,
     exemplars: Exemplars = None,
@@ -164,6 +175,7 @@ def preview_command(
                 config=config,
                 format=format,
                 format_options=format_option,
+                tables=table,
                 guidance=guidance,
                 guidance_file=guidance_file,
                 exemplars=exemplars,
@@ -183,6 +195,7 @@ def scan_command(
     config: ConfigFile = None,
     format: InputFormat = None,
     format_option: FormatOptions = None,
+    table: Tables = None,
     guidance: Guidance = None,
     guidance_file: GuidanceFile = None,
     exemplars: Exemplars = None,
@@ -248,6 +261,7 @@ def scan_command(
                 config=config,
                 format=format,
                 format_options=format_option,
+                tables=table,
                 guidance=guidance,
                 guidance_file=guidance_file,
                 exemplars=exemplars,
@@ -283,13 +297,31 @@ def formats_command(
     for spec in specs:
         typer.echo(f"{spec.name} ({', '.join(spec.extensions)}): {spec.summary}")
         if name:
-            for option in (ENCODING, *spec.options):
+            for option in spec.all_options:
                 typer.echo(f"  {option.name}={option.default!r} — {option.help}")
+            if not spec.text:
+                typer.echo(
+                    "  Use --table NAME to select tables or views; 'jt tables FILE' lists them."
+                )
     typer.echo(
-        "\nAll formats accept .gz compression and --format-option encoding=NAME."
+        "\nText formats accept .gz compression and --format-option encoding=NAME."
     )
     if not name:
         typer.echo("Use 'jevotron formats NAME' to see format-specific options.")
+
+
+@app.command("tables")
+def tables_command(file: InputFile, format: InputFormat = None) -> None:
+    """List database tables, views, columns, and primary keys as JSONL. No API key needed."""
+    try:
+        parser = for_path(file, format)
+        if not isinstance(parser, Database):
+            raise ValueError("tables requires a SQLite or DuckDB database")
+        for table in parser.catalog(file):
+            typer.echo(json_text(table.to_dict()))
+    except (ValueError, OSError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
 
 
 def _format_options(items):
@@ -340,6 +372,12 @@ def _write_csv(writer, result):
         )
 
 
+def _same_file(left: Path, right: Path) -> bool:
+    return left.resolve() == right.resolve() or (
+        left.exists() and right.exists() and left.samefile(right)
+    )
+
+
 def _run(args: RunOptions) -> int:
     count = cached = warnings = emitted = 0
     try:
@@ -367,25 +405,44 @@ def _run(args: RunOptions) -> int:
                 args.exemplars,
                 getattr(args, "cache", None),
             ]
-            if args.output.resolve() in {p.resolve() for p in protected if p}:
+            if any(_same_file(args.output, p) for p in protected if p):
                 raise ValueError(
                     "Output must not overwrite input, config, guidance, exemplars, or cache"
                 )
         if config.parser is not None and (
-            args.format is not None or args.format_options
+            args.format is not None or args.format_options or args.tables
         ):
             raise ValueError(
-                "--format and --format-option cannot be combined with a custom config parser; "
+                "--format, --format-option, and --table cannot be combined with a custom config parser; "
                 "set its options in the Python config"
             )
         parser = config.parser or for_path(
             args.file, args.format, _format_options(args.format_options)
         )
+        selection_args = args
+        if isinstance(parser, Database):
+            parser = replace(
+                parser,
+                tables=args.tables if args.tables is not None else parser.tables,
+                id_column=args.id_column
+                if args.id_column is not None
+                else parser.id_column,
+            )
+            # Database IDs retain the table namespace even with --id-column.
+            selection_args = replace(args, id_column=None)
+            if (
+                args.command == "scan"
+                and not args.no_cache
+                and _same_file(args.cache, args.file)
+            ):
+                raise ValueError("Cache must not overwrite the input database")
+        elif args.tables:
+            raise ValueError("--table requires a SQLite or DuckDB database")
         chunks = iter(parser(args.file))
         with ExitStack() as stack:
             if hasattr(chunks, "close"):
                 stack.enter_context(closing(chunks))
-            selected = _selected(chunks, args)
+            selected = _selected(chunks, selection_args)
             limited = (
                 islice(selected, args.limit) if args.limit is not None else selected
             )

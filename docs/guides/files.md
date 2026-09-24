@@ -1,6 +1,7 @@
 # Files & field selection
 
-The CLI detects the parser from the file extension. Start by previewing:
+The CLI detects SQLite and DuckDB by file header, and other formats by file
+extension. Start by previewing:
 
 ```sh
 jevotron preview records.csv
@@ -8,6 +9,7 @@ jevotron preview records.yaml
 jevotron preview ontology.obo
 jevotron preview services.toml
 jevotron preview events.jsonl.gz
+jt preview inventory.db
 ```
 
 | Format | One entry | Default fields |
@@ -22,6 +24,7 @@ jevotron preview events.jsonl.gz
 | Logs / textlines | One nonblank line (configurable) | `/text` |
 | FASTA | One sequence record | ID, description, sequence |
 | GMT | One named set | Name, description, members |
+| SQLite / DuckDB | One row from each user table | Each column |
 
 YAML supports multiple documents and keeps dates as text. CSV values remain
 strings, preserving leading zeros and empty cells. Duplicate headers, duplicate
@@ -60,7 +63,10 @@ jevotron preview products.jsonl --id-column sku
 
 `--id-column` selects a top-level scalar field as the reporting ID. IDs must be
 nonempty and unique within a scan. Without it, tabular parsers use positional
-IDs and OBO uses the stanza's `id`. Reporting IDs do not affect the cache, but
+IDs and OBO uses the stanza's `id`. Databases use primary keys when available,
+otherwise row positions, and always qualify IDs with the schema and table name
+(also with `--id-column`). See [database selection rules](databases.md).
+Reporting IDs do not affect the cache, but
 the same values inside the entry data do.
 
 ## Nested and repeated fields
