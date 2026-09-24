@@ -26,7 +26,8 @@ jevotron scan units.obo --config jev_config.py
 ```
 
 Repeated synonyms remain separate fields, such as `/synonym/0` and `/synonym/1`.
-There is no graph traversal or related-stanza retrieval in v1.
+This config assesses each stanza on its own. For explicit related evidence,
+see [reference joins and graph context](../guides/references.md).
 
 ## Actual output
 

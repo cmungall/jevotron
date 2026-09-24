@@ -99,6 +99,7 @@ Open **http://127.0.0.1:8000**. Build static files with
 - [File format reference](docs/reference/formats.md) — CSV/TSV, JSON/JSONL, YAML,
   TOML, text/Markdown, OBO, FASTA, GMT, and gzip; defaults and parser options
 - [Guidance and examples](docs/guides/guidance.md)
+- [Reference joins and N-hop graphs](docs/guides/references.md)
 - [Review and export](docs/guides/reports.md)
 - [Caching across versions](docs/guides/cache.md)
 - [Shell pipelines](docs/guides/shell.md)

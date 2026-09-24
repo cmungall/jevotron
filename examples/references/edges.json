@@ -1,0 +1,6 @@
+[
+  {"source": "cups", "relation": "in_category", "target": "fragile"},
+  {"source": "towels", "relation": "in_category", "target": "textiles"},
+  {"source": "fragile", "relation": "handling_rule", "target": "fragile-handling"},
+  {"source": "textiles", "relation": "handling_rule", "target": "textile-handling"}
+]

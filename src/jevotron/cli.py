@@ -368,6 +368,11 @@ def _write_csv(writer, result):
                 "assessed_at": result.assessed_at,
                 "request_hash": result.request_hash,
                 "cached": result.cached,
+                **(
+                    {"context": json_text(result.context)}
+                    if "context" in writer.fieldnames
+                    else {}
+                ),
             }
         )
 
@@ -404,10 +409,11 @@ def _run(args: RunOptions) -> int:
                 args.guidance_file,
                 args.exemplars,
                 getattr(args, "cache", None),
+                *(path for spec in config.references for path in spec.source_paths()),
             ]
             if any(_same_file(args.output, p) for p in protected if p):
                 raise ValueError(
-                    "Output must not overwrite input, config, guidance, exemplars, or cache"
+                    "Output must not overwrite input, config, guidance, exemplars, cache, or references"
                 )
         if config.parser is not None and (
             args.format is not None or args.format_options or args.tables
@@ -439,6 +445,16 @@ def _run(args: RunOptions) -> int:
         elif args.tables:
             raise ValueError("--table requires a SQLite or DuckDB database")
         chunks = iter(parser(args.file))
+        if (
+            args.command == "scan"
+            and not args.no_cache
+            and any(
+                _same_file(args.cache, path)
+                for spec in config.references
+                for path in spec.source_paths()
+            )
+        ):
+            raise ValueError("Cache must not overwrite reference inputs")
         with ExitStack() as stack:
             if hasattr(chunks, "close"):
                 stack.enter_context(closing(chunks))
@@ -486,6 +502,7 @@ def _run(args: RunOptions) -> int:
                         "assessed_at",
                         "request_hash",
                         "cached",
+                        *(["context"] if config.references else []),
                     ],
                 )
                 writer.writeheader()
