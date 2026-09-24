@@ -198,6 +198,13 @@ def compare(
     inference = _inference(config)
     sides = [_index(baseline, "baseline"), _index(candidate, "candidate")]
     _check_coverage(*sides)
+    resolver = None
+    if getattr(config, "references", None):
+        from jevotron.context import ContextResolver
+
+        # Index reference sources once for the complete preflight. scan() owns
+        # its assessment snapshot; changed dependencies fail the hash check below.
+        resolver = ContextResolver(config.references)
     requests = set()
     batches = []
     identities = []
@@ -205,7 +212,11 @@ def compare(
         keys = {}
         batch = []
         for ident, chunk in chunks.items():
-            request, _ = make_request(chunk, config)
+            request, _ = (
+                make_request(chunk, config, context=resolver.resolve(chunk))
+                if resolver is not None
+                else make_request(chunk, config)
+            )
             key = request_hash(request)
             keys[ident] = key
             if key not in requests:
