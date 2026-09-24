@@ -4,6 +4,7 @@ import csv
 import gzip
 import io
 import json
+import re
 import tomllib
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -242,13 +243,14 @@ class OBO:
                 if not text or text.startswith("!"):
                     continue
                 if text.startswith("["):
-                    if not text.endswith("]") or len(text) < 3:
+                    header = re.fullmatch(r"\[([^\[\]]+)\]\s*(?:!.*)?", text)
+                    if header is None or not header[1].strip():
                         raise ValueError(f"{path}:{line}: Invalid OBO stanza header")
                     if data is not None and (
                         not self.stanza or data["_stanza"] == self.stanza
                     ):
                         yield chunk()
-                    data = {"_stanza": text[1:-1]}
+                    data = {"_stanza": header[1]}
                     start = line
                 elif data is not None:
                     tag, sep, value = text.partition(":")
