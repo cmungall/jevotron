@@ -40,6 +40,11 @@ CLI guidance, exemplars, model, threshold, field selection, and ID selection
 override the corresponding config or parser behavior. Relative CLI paths use
 your working directory; config-relative paths should use `__file__` as above.
 
+For built-in file and database parsers, `--id-column` replaces the configured ID
+column before parsing and validation, without modifying the reusable config.
+An arbitrary custom parser must first yield a chunk successfully; the CLI then
+replaces its reporting ID. The flag cannot bypass errors inside custom parser code.
+
 ## Customize labels
 
 ```python
