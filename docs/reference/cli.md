@@ -2,6 +2,7 @@
 
 The commands and options below are generated from the installed Typer app on
 every documentation build. Use `jevotron COMMAND --help` for help in your terminal.
+`jt` is an alias for `jevotron` and accepts the same commands and options.
 
 See the [file format reference](formats.md) for parser defaults, examples, and
 the options accepted by `--format-option`. `jevotron formats NAME` shows the

@@ -13,6 +13,7 @@ hide:
 
 [Run your first scan](quickstart.md){ .md-button .md-button--primary }
 [Explore the commands](reference/cli.md){ .md-button }
+[Install agent skills](guides/agents.md){ .md-button }
 
 </div>
 

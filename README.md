@@ -25,6 +25,8 @@ export TYPESAFE_API_KEY="your-api-key"
 jevotron scan examples/airports/spiked.csv --guidance "Check airport locations."
 ```
 
+`jt` is a short alias for `jevotron`; both accept the same commands and options.
+
 **API key:** Live scans require `TYPESAFE_API_KEY` from the
 [TypeSafe dashboard](https://console.typesafe.ai/). An existing environment
 variable is used automatically; preview and fully cached runs need no key.
@@ -39,6 +41,31 @@ jevotron formats
 jevotron formats csv
 jevotron --install-completion
 ```
+
+## Agent skills
+
+Give your agent a large data file and a review question. The **jt-triage** skill
+teaches it to preview a few records, run a focused pilot, inspect a small queue
+of candidates, refine the guidance, and expand the scan. Full results stay on
+disk; the agent reads the cases that need reasoning. Cached assessments make
+repeat runs cheaper when the requests are unchanged.
+
+```sh
+npx skills add cmungall/jevotron --skill jt-triage
+```
+
+The skill installer supports multiple agents; it installs instructions and a
+local shortlist helper. Install the CLI separately with
+`uv tool install git+https://github.com/cmungall/jevotron.git` and set
+`TYPESAFE_API_KEY` for live scans.
+
+Try: “Use jt to find inconsistent country assignments in this large airport
+file. Pilot the rules, investigate the strongest cases, then scan the full file
+and give me a review queue with source locations.”
+
+[Skill catalog](skills/README.md) ·
+[Installation and workflow guide](docs/guides/agents.md) ·
+[Skill instructions](skills/jt-triage/SKILL.md)
 
 ## Documentation
 
