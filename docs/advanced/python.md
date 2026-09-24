@@ -21,4 +21,3 @@ Pass `cache=None` to disable persistence. An injected client implements
 offline testing and external integrations straightforward. If stopping a scan
 early, close its iterator (or use `contextlib.closing`) to release resources.
 The caller owns an injected client's lifetime.
-
