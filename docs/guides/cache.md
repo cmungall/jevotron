@@ -21,6 +21,9 @@ jevotron scan data.csv --cache "$HOME/.cache/jevotron/project.sqlite3"
 Use the same cache path for later versions. The default path is relative to
 your working directory.
 
+Concurrent scans can share a local cache. If their initial cache setup contends
+for a SQLite lock, jevotron retries for up to 30 seconds before reporting an error.
+
 ## Control reassessment
 
 ```sh
