@@ -374,3 +374,19 @@ def test_duckdb_explicit_id_rejects_nonscalar_or_empty(tmp_path, capsys, express
         list(DuckDB(id_column="id")(path))
     assert main(["preview", str(path), "--id-column", "id"]) == 1
     assert not capsys.readouterr().out
+
+
+@pytest.mark.parametrize("alias", ["direct", "symlink", "hardlink"])
+def test_preview_output_preserves_database(database, tmp_path, capsys, alias):
+    _, path, _ = database
+    target = path
+    if alias != "direct":
+        target = tmp_path / "report.jsonl"
+        if alias == "symlink":
+            target.symlink_to(path)
+        else:
+            target.hardlink_to(path)
+    original = path.read_bytes()
+    assert main(["preview", str(path), "--output", str(target)]) == 1
+    assert "Output must not overwrite" in capsys.readouterr().err
+    assert path.read_bytes() == original
