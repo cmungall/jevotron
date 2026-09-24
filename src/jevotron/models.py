@@ -3,7 +3,15 @@
 import json
 import re
 from dataclasses import asdict, dataclass
+from enum import Enum
 from typing import Any
+
+
+class _MissingEntry(Enum):
+    unset = "entry not provided"
+
+
+ENTRY_UNSET = _MissingEntry.unset
 
 
 def json_text(value: Any) -> str:
@@ -114,6 +122,10 @@ class Result:
     request_hash: str
     cached: bool
     usage: dict[str, Any]
+    entry: Any = ENTRY_UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        result = asdict(self)
+        if self.entry is ENTRY_UNSET:
+            result.pop("entry")
+        return result

@@ -45,8 +45,8 @@ The threshold determines warnings independently of the chosen label.
 
     One JSON object per entry, with nested field results. Includes `id`, `source`,
     `label`, `score`, `warning`, `fields`, `model`, `assessed_at`, `request_hash`,
-    `cached`, and `usage`. Each field includes its path, value, label, probabilities,
-    confidence, and anomaly score.
+    `cached`, `usage`, and the full original `entry`. Each field includes its path,
+    value, label, probabilities, confidence, and anomaly score.
 
 === "CSV"
 
@@ -71,3 +71,6 @@ assessments remain cached in either case.
 
 See [shell pipelines](shell.md) for scripts that check exit status before using
 the output.
+
+For durable human decisions, use the [human review queue](review.md). It works
+offline and exports deliberately selected decisions as exemplars.

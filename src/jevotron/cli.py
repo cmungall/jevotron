@@ -20,6 +20,7 @@ from jevotron.config import Config, load_config
 from jevotron.databases import Database
 from jevotron.models import json_text, pointer_key, resolve
 from jevotron.parsers import FORMATS, for_path, format_spec
+from jevotron.review_cli import app as review_app
 from jevotron.runner import preview, scan
 
 app = typer.Typer(
@@ -28,6 +29,9 @@ app = typer.Typer(
     rich_markup_mode="markdown",
     pretty_exceptions_show_locals=False,
 )
+
+app.add_typer(review_app, name="review")
+
 
 InputFile = Annotated[
     Path,

@@ -1,5 +1,6 @@
 """Independent chunks → batched field questions → cached assessments."""
 
+import copy
 import hashlib
 import math
 from collections.abc import Iterable, Iterator
@@ -191,6 +192,7 @@ def scan(
                 key,
                 saved is not None,
                 response.get("usage", {}),
+                entry=copy.deepcopy(chunk.data),
             )
     finally:
         if owned_client:
