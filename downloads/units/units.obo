@@ -1,0 +1,22 @@
+format-version: 1.2
+ontology: jevotron-demo-units
+remark: Synthetic demonstration data; DEMO identifiers are not Unit Ontology IDs.
+
+[Term]
+id: DEMO:0001
+name: metre
+def: "An SI unit of length." []
+synonym: "meter" EXACT []
+synonym: "m" EXACT []
+
+[Term]
+id: DEMO:0002
+name: kilogram
+def: "An SI unit of time equal to sixty seconds." []
+synonym: "kg" EXACT []
+
+[Term]
+id: DEMO:0003
+name: second
+def: "An SI unit of time." []
+synonym: "s" EXACT []

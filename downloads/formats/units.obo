@@ -1,0 +1,8 @@
+format-version: 1.2
+
+[Term]
+id: EX:0001
+name: metre
+def: "A unit of length." []
+synonym: "meter" EXACT []
+synonym: "m" EXACT []

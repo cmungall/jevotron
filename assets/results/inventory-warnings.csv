@@ -1,0 +1,7 @@
+id,source,label,score,warning,field,value,field_label,field_score,probabilities,confidence,model,assessed_at,request_hash,cached
+cable,items.yaml:document:1:entry:2,ANOMALY,1.0,True,/category,"""electronics""",NORMAL,0.0,"{""ANOMALY"":0.0,""NORMAL"":1.0}",1.0,jev-1.13.0,2026-09-24T00:23:46.803830+00:00,4e0d609f167eb3e358d1a0f5e7cdc9326911c22889e6cfaf3aba017fcd5c1171,True
+cable,items.yaml:document:1:entry:2,ANOMALY,1.0,True,/quantity,-30,ANOMALY,1.0,"{""ANOMALY"":1.0,""NORMAL"":0.0}",1.0,jev-1.13.0,2026-09-24T00:23:46.803830+00:00,4e0d609f167eb3e358d1a0f5e7cdc9326911c22889e6cfaf3aba017fcd5c1171,True
+cable,items.yaml:document:1:entry:2,ANOMALY,1.0,True,/unit_price_usd,8.0,NORMAL,0.0,"{""ANOMALY"":0.0,""NORMAL"":1.0}",0.99,jev-1.13.0,2026-09-24T00:23:46.803830+00:00,4e0d609f167eb3e358d1a0f5e7cdc9326911c22889e6cfaf3aba017fcd5c1171,True
+mug,items.yaml:document:1:entry:3,ANOMALY,0.98,True,/category,"""stationery""",ANOMALY,0.98,"{""ANOMALY"":0.98,""NORMAL"":0.02}",0.96,jev-1.13.0,2026-09-24T00:23:46.960574+00:00,4e8ea74dbdaacf676487b64df57b172f34aee23a77e60a40f81ab74d17a75c2d,True
+mug,items.yaml:document:1:entry:3,ANOMALY,0.98,True,/quantity,6,NORMAL,0.0,"{""ANOMALY"":0.0,""NORMAL"":1.0}",1.0,jev-1.13.0,2026-09-24T00:23:46.960574+00:00,4e8ea74dbdaacf676487b64df57b172f34aee23a77e60a40f81ab74d17a75c2d,True
+mug,items.yaml:document:1:entry:3,ANOMALY,0.98,True,/unit_price_usd,12.0,NORMAL,0.0,"{""ANOMALY"":0.0,""NORMAL"":1.0}",1.0,jev-1.13.0,2026-09-24T00:23:46.960574+00:00,4e8ea74dbdaacf676487b64df57b172f34aee23a77e60a40f81ab74d17a75c2d,True

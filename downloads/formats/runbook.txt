@@ -1,0 +1,4 @@
+The web service listens on port 443.
+It requires authentication for all account requests.
+
+Restart the service after changing its configuration.
