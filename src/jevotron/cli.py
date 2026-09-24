@@ -18,8 +18,17 @@ import yaml
 from jevotron.client import JevError
 from jevotron.config import Config, load_config
 from jevotron.databases import Database
-from jevotron.models import json_text, pointer_key, resolve
-from jevotron.parsers import FORMATS, for_path, format_spec
+from jevotron.models import json_text, pointer_key, resolve, scalar_id
+from jevotron.parsers import (
+    CSV,
+    FORMATS,
+    JSON,
+    JSONL,
+    TOML,
+    YAML,
+    for_path,
+    format_spec,
+)
 from jevotron.runner import preview, scan
 
 app = typer.Typer(
@@ -343,9 +352,7 @@ def _selected(chunks, args):
             changes["fields"] = args.fields
         if args.id_column is not None:
             value = resolve(chunk.data, pointer_key(args.id_column))
-            if value is None or isinstance(value, (list, dict)) or str(value) == "":
-                raise ValueError("--id-column must select a nonempty scalar field")
-            changes["id"] = str(value)
+            changes["id"] = scalar_id(value)
         yield replace(chunk, **changes) if changes else chunk
 
 
@@ -438,6 +445,12 @@ def _run(args: RunOptions) -> int:
                 raise ValueError("Cache must not overwrite the input database")
         elif args.tables:
             raise ValueError("--table requires a SQLite or DuckDB database")
+        elif args.id_column is not None and isinstance(
+            parser, (CSV, JSON, JSONL, YAML, TOML)
+        ):
+            # Select the effective ID before the built-in parser validates it.
+            # Copy the adapter so an embedded caller can reuse its config.
+            parser = replace(parser, id_column=args.id_column)
         chunks = iter(parser(args.file))
         with ExitStack() as stack:
             if hasattr(chunks, "close"):

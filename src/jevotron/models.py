@@ -21,6 +21,14 @@ def pointer_key(key: str) -> str:
     return "/" + key.replace("~", "~0").replace("/", "~1")
 
 
+def scalar_id(value: Any) -> str:
+    """Use the same nonempty JSON scalar contract for parser and CLI IDs."""
+    if value is None or not isinstance(value, (str, int, float, bool)) or value == "":
+        raise ValueError("Identifier must select a nonempty scalar field")
+    validate_json(value)
+    return str(value)
+
+
 def resolve(data: Any, pointer: str) -> Any:
     """Resolve an RFC 6901 JSON Pointer; the empty pointer selects the root."""
     if not isinstance(pointer, str) or (pointer and not pointer.startswith("/")):
@@ -45,18 +53,36 @@ def resolve(data: Any, pointer: str) -> Any:
 
 
 def validate_json(value: Any) -> None:
-    """Reject lossy conversions, non-string keys, NaN, and custom objects."""
-    if isinstance(value, dict):
-        if any(not isinstance(key, str) for key in value):
-            raise ValueError("Chunk data must have string object keys")
-        for item in value.values():
-            validate_json(item)
-    elif isinstance(value, list):
-        for item in value:
-            validate_json(item)
-    elif value is not None and not isinstance(value, (str, int, float, bool)):
-        raise ValueError(f"Expected JSON-compatible data, got {type(value).__name__}")
-    json_text(value)
+    """Reject cycles, lossy conversions, non-string keys, NaN, and custom objects."""
+    ancestors = set()
+
+    def visit(item):
+        if isinstance(item, (dict, list)):
+            # Only references to current ancestors are cycles. Shared values in
+            # sibling fields (including YAML aliases) remain JSON-compatible.
+            identity = id(item)
+            if identity in ancestors:
+                raise ValueError("JSON-compatible data must not contain cycles")
+            ancestors.add(identity)
+            if isinstance(item, dict):
+                if any(not isinstance(key, str) for key in item):
+                    raise ValueError("Chunk data must have string object keys")
+                children = item.values()
+            else:
+                children = item
+            for child in children:
+                visit(child)
+            ancestors.remove(identity)
+        elif item is not None and not isinstance(item, (str, int, float, bool)):
+            raise ValueError(
+                f"Expected JSON-compatible data, got {type(item).__name__}"
+            )
+
+    try:
+        visit(value)
+        json_text(value)
+    except RecursionError:
+        raise ValueError("JSON-compatible data is nested too deeply") from None
 
 
 @dataclass

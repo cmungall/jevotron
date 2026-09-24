@@ -4,6 +4,7 @@ import csv
 import gzip
 import io
 import json
+import re
 import tomllib
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -14,7 +15,7 @@ from typing import Any
 import yaml
 
 from jevotron.databases import DuckDB, SQLite, detect_database
-from jevotron.models import Chunk, pointer_key, resolve
+from jevotron.models import Chunk, pointer_key, resolve, scalar_id
 
 
 def _open_text(path: Path, encoding: str):
@@ -36,7 +37,7 @@ def _id(data: Any, id_column: str | None, fallback: str) -> str:
         or data[id_column] in (None, "")
     ):
         raise ValueError(f"Missing identifier field {id_column!r} at {fallback}")
-    return str(data[id_column])
+    return scalar_id(data[id_column])
 
 
 @dataclass
@@ -87,22 +88,35 @@ class CSV:
 
 
 class _YamlLoader(yaml.SafeLoader):
-    pass
+    def construct_document(self, node):
+        self._validated_mappings = set()
+        try:
+            return super().construct_document(node)
+        finally:
+            self._validated_mappings.clear()
+
+    def flatten_mapping(self, node):
+        # PyYAML flattens merge sources recursively, including sources that never
+        # pass through _mapping. Check their original pairs before it mutates them.
+        if node not in self._validated_mappings:
+            explicit = set()
+            for key_node, _ in node.value:
+                if key_node.tag == "tag:yaml.org,2002:merge":
+                    continue
+                key = self.construct_object(key_node)
+                if not isinstance(key, str):
+                    raise ValueError("YAML object keys must be strings")
+                if key in explicit:
+                    raise ValueError(
+                        f"Duplicate YAML key {key!r} "
+                        f"at line {key_node.start_mark.line + 1}"
+                    )
+                explicit.add(key)
+            self._validated_mappings.add(node)
+        super().flatten_mapping(node)
 
 
 def _mapping(loader: _YamlLoader, node: yaml.MappingNode) -> dict:
-    explicit = set()
-    for key_node, value_node in node.value:
-        if key_node.tag == "tag:yaml.org,2002:merge":
-            continue
-        key = loader.construct_object(key_node)
-        if not isinstance(key, str):
-            raise ValueError("YAML object keys must be strings")
-        if key in explicit:
-            raise ValueError(
-                f"Duplicate YAML key {key!r} at line {key_node.start_mark.line + 1}"
-            )
-        explicit.add(key)
     # Standard YAML merge overrides are intentional, not duplicate source keys.
     loader.flatten_mapping(node)
     result = loader.construct_mapping(node)
@@ -118,6 +132,26 @@ _YamlLoader.add_constructor(
 )
 
 
+def _yaml_documents(stream):
+    loader = _YamlLoader(stream)
+    try:
+        doc_index = 0
+        while loader.check_data():
+            doc_index += 1
+            node = loader.get_node()
+            # An absent root and explicit null both construct to None. The
+            # absent root is the null scalar with no source text of its own.
+            if (
+                isinstance(node, yaml.ScalarNode)
+                and node.tag == "tag:yaml.org,2002:null"
+                and node.start_mark.index == node.end_mark.index
+            ):
+                continue
+            yield doc_index, loader.construct_document(node)
+    finally:
+        loader.dispose()
+
+
 @dataclass
 class YAML:
     id_column: str | None = None
@@ -127,11 +161,7 @@ class YAML:
 
     def __call__(self, path: Path) -> Iterable[Chunk]:
         with _open_text(path, self.encoding) as stream:
-            for doc_index, data in enumerate(
-                yaml.load_all(stream, Loader=_YamlLoader), 1
-            ):
-                if data is None:
-                    continue
+            for doc_index, data in _yaml_documents(stream):
                 entries = _entries(data, self.records)
                 for index, entry in enumerate(entries, 1):
                     fallback = f"{doc_index}:{index}"
@@ -242,13 +272,14 @@ class OBO:
                 if not text or text.startswith("!"):
                     continue
                 if text.startswith("["):
-                    if not text.endswith("]") or len(text) < 3:
+                    header = re.fullmatch(r"\[([^\[\]]+)\]\s*(?:!.*)?", text)
+                    if header is None or not header[1].strip():
                         raise ValueError(f"{path}:{line}: Invalid OBO stanza header")
                     if data is not None and (
                         not self.stanza or data["_stanza"] == self.stanza
                     ):
                         yield chunk()
-                    data = {"_stanza": text[1:-1]}
+                    data = {"_stanza": header[1]}
                     start = line
                 elif data is not None:
                     tag, sep, value = text.partition(":")
