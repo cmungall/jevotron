@@ -87,22 +87,35 @@ class CSV:
 
 
 class _YamlLoader(yaml.SafeLoader):
-    pass
+    def construct_document(self, node):
+        self._validated_mappings = set()
+        try:
+            return super().construct_document(node)
+        finally:
+            self._validated_mappings.clear()
+
+    def flatten_mapping(self, node):
+        # PyYAML flattens merge sources recursively, including sources that never
+        # pass through _mapping. Check their original pairs before it mutates them.
+        if node not in self._validated_mappings:
+            explicit = set()
+            for key_node, _ in node.value:
+                if key_node.tag == "tag:yaml.org,2002:merge":
+                    continue
+                key = self.construct_object(key_node)
+                if not isinstance(key, str):
+                    raise ValueError("YAML object keys must be strings")
+                if key in explicit:
+                    raise ValueError(
+                        f"Duplicate YAML key {key!r} "
+                        f"at line {key_node.start_mark.line + 1}"
+                    )
+                explicit.add(key)
+            self._validated_mappings.add(node)
+        super().flatten_mapping(node)
 
 
 def _mapping(loader: _YamlLoader, node: yaml.MappingNode) -> dict:
-    explicit = set()
-    for key_node, value_node in node.value:
-        if key_node.tag == "tag:yaml.org,2002:merge":
-            continue
-        key = loader.construct_object(key_node)
-        if not isinstance(key, str):
-            raise ValueError("YAML object keys must be strings")
-        if key in explicit:
-            raise ValueError(
-                f"Duplicate YAML key {key!r} at line {key_node.start_mark.line + 1}"
-            )
-        explicit.add(key)
     # Standard YAML merge overrides are intentional, not duplicate source keys.
     loader.flatten_mapping(node)
     result = loader.construct_mapping(node)
