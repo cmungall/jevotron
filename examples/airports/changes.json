@@ -1,0 +1,16 @@
+[
+  {
+    "entry_id": "EGLL",
+    "field_path": "/iso_country",
+    "original": "GB",
+    "injected": "JP",
+    "corruption_type": "country_substitution"
+  },
+  {
+    "entry_id": "KJFK",
+    "field_path": "/iso_country",
+    "original": "US",
+    "injected": "FR",
+    "corruption_type": "country_substitution"
+  }
+]

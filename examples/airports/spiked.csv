@@ -1,0 +1,9 @@
+ident,name,municipality,iso_country,latitude_deg,longitude_deg,elevation_ft
+EDDF,Frankfurt Main Airport,Frankfurt am Main,DE,50.026706,8.55835,364
+EGLL,London Heathrow Airport,London,JP,51.470748,-0.459909,83
+FAOR,O.R. Tambo International Airport,Johannesburg,ZA,-26.140081,28.246801,5558
+KJFK,John F. Kennedy International Airport,New York,FR,40.639447,-73.779317,13
+LFPG,Charles de Gaulle International Airport,"Paris (Roissy-en-France, Val-d'Oise)",FR,49.00896,2.554117,392
+RJTT,Tokyo Haneda International Airport,Tokyo,JP,35.549678,139.786958,35
+SBGR,São Paulo/Guarulhos–Governor André Franco Montoro International Airport,São Paulo,BR,-23.431274,-46.469954,2461
+YSSY,Sydney Kingsford Smith International Airport,Sydney (Mascot),AU,-33.946098,151.177002,21

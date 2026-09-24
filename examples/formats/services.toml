@@ -1,0 +1,9 @@
+[[services]]
+name = "web"
+port = 443
+enabled = true
+
+[[services]]
+name = "database"
+port = -1
+enabled = true

@@ -1,0 +1,3 @@
+id,source,label,score,warning,field,value,field_label,field_score,probabilities,confidence,model,assessed_at,request_hash,cached
+DEMO:0002,units.obo:12,ANOMALY,1.0,True,/def/0,"""\""An SI unit of time equal to sixty seconds.\"" []""",ANOMALY,1.0,"{""ANOMALY"":1.0,""NORMAL"":0.0}",1.0,jev-1.13.0,2026-09-24T00:23:47.640019+00:00,f9303a9e43bff2a66a8590703038cbaac7bcf109c417b1708cb568222b6611ca,True
+DEMO:0002,units.obo:12,ANOMALY,1.0,True,/synonym/0,"""\""kg\"" EXACT []""",NORMAL,0.22,"{""ANOMALY"":0.22,""NORMAL"":0.78}",0.55,jev-1.13.0,2026-09-24T00:23:47.640019+00:00,f9303a9e43bff2a66a8590703038cbaac7bcf109c417b1708cb568222b6611ca,True
