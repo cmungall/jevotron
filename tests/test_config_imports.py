@@ -149,3 +149,23 @@ def test_nested_load_restores_enclosing_project_helpers(tmp_path):
     config = load_config(outer)
     assert config.guidance == "outer:inner"
     assert list(config.parser(Path("unused")))[0].id == "outer"
+
+
+def test_namespace_candidates_do_not_replace_installed_or_builtin_modules(tmp_path):
+    import jevotron
+
+    # Ordinary directories must not cause a second copy of an installed package.
+    for name in ("jevotron", "httpx", "json"):
+        (tmp_path / name).mkdir()
+    (tmp_path / "sys.py").write_text("raise AssertionError('builtin must win')\n")
+    config = tmp_path / "config.py"
+    config.write_text(
+        "from jevotron import Config\nimport httpx, json, sys\n"
+        "config = Config(guidance='valid')\n"
+    )
+    previous = {
+        name: sys.modules[name] for name in ("jevotron", "httpx", "json", "sys")
+    }
+    assert load_config(config).guidance == "valid"
+    assert sys.modules["jevotron"] is jevotron
+    assert {name: sys.modules[name] for name in previous} == previous

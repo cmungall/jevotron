@@ -77,38 +77,64 @@ class Config:
         return {label: defaults.get(label) for label in self.labels}
 
 
+def _sibling_roots(directory: Path) -> set[str]:
+    roots = {"_jevotron_local_config"}
+    for child in directory.iterdir():
+        if child.is_file() and child.suffix == ".py":
+            name = child.stem
+        elif child.is_dir() and child.name.isidentifier():
+            name = child.name
+        else:
+            continue
+        # Ask the normal finders without consulting sys.modules. A namespace
+        # directory does not win over a regular installed package, and local
+        # files do not win over built-in/frozen modules.
+        for finder in sys.meta_path:
+            spec = finder.find_spec(name, None)
+            if spec is not None:
+                break
+        else:
+            continue
+        if spec.origin not in (None, "built-in", "frozen"):
+            origin = Path(spec.origin)
+            if origin == child or origin.is_relative_to(child):
+                roots.add(name)
+        elif spec.origin is None and spec.submodule_search_locations is not None:
+            if str(child) in spec.submodule_search_locations:
+                roots.add(name)
+    return roots
+
+
 @contextmanager
 def _local_imports(directory: Path):
     """Scope sibling imports to this load without changing the caller's modules."""
     # Module caching is process-wide, as is sys.path. Serialize our loaders,
     # including nested loads, while preserving imports owned by the caller.
     with _CONFIG_IMPORT_LOCK:
-        roots = {"_jevotron_local_config"}
-        for child in directory.iterdir():
-            if child.is_file() and child.suffix == ".py":
-                roots.add(child.stem)
-            elif child.is_dir() and child.name.isidentifier():
-                # Include namespace packages, which have no __init__.py.
-                roots.add(child.name)
-
-        def local(name):
-            return name.partition(".")[0] in roots
-
-        previous_modules = {
-            name: module for name, module in sys.modules.copy().items() if local(name)
-        }
         previous_path = sys.path[:]
         try:
-            for name in previous_modules:
-                sys.modules.pop(name, None)
             sys.path.insert(0, str(directory))
             importlib.invalidate_caches()
-            yield
+            roots = _sibling_roots(directory)
+
+            def local(name):
+                return name.partition(".")[0] in roots
+
+            previous_modules = {
+                name: module
+                for name, module in sys.modules.copy().items()
+                if local(name)
+            }
+            try:
+                for name in previous_modules:
+                    sys.modules.pop(name, None)
+                yield
+            finally:
+                for name in list(sys.modules):
+                    if local(name):
+                        del sys.modules[name]
+                sys.modules.update(previous_modules)
         finally:
-            for name in list(sys.modules):
-                if local(name):
-                    del sys.modules[name]
-            sys.modules.update(previous_modules)
             sys.path[:] = previous_path
 
 
