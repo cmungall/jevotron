@@ -1,4 +1,5 @@
 site_name: jevotron
+site_url: https://cmungall.github.io/jevotron/
 repo_url: https://github.com/cmungall/jevotron
 repo_name: cmungall/jevotron
 site_description: Find the fields worth a second look. Anomaly detection from your terminal.
