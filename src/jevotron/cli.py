@@ -16,6 +16,7 @@ import typer
 import yaml
 
 from jevotron.client import JevError
+from jevotron.compare_cli import compare_command
 from jevotron.config import Config, load_config
 from jevotron.databases import Database
 from jevotron.models import json_text, pointer_key, resolve
@@ -28,6 +29,7 @@ app = typer.Typer(
     rich_markup_mode="markdown",
     pretty_exceptions_show_locals=False,
 )
+app.command("compare")(compare_command)
 
 InputFile = Annotated[
     Path,

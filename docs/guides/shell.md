@@ -44,6 +44,11 @@ if test -s warnings.jsonl; then
 fi
 ```
 
+For versioned datasets, [compare versions](compare.md) with
+`--fail-on new-warning` to fail only for newly introduced field warnings.
+The `compare` command returns 3 for a completed policy violation, independently
+of input/API errors (1) and invalid CLI syntax (2).
+
 | Exit code | Meaning |
 | --- | --- |
 | `0` | Command completed successfully; warnings may exist |
