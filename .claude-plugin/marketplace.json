@@ -1,0 +1,18 @@
+{
+  "name": "jevotron",
+  "owner": { "name": "Chris Mungall" },
+  "metadata": {
+    "description": "Agent skills for iterative data triage with jt.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "jt-skills",
+      "description": "Narrow large data files to evidence-backed review candidates with jt.",
+      "version": "0.1.0",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/jt-triage"]
+    }
+  ]
+}
