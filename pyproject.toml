@@ -7,9 +7,25 @@ authors = [
     { name = "Chris Mungall", email = "cjm@berkeleybop.org" }
 ]
 requires-python = ">=3.12"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+keywords = ["anomaly-detection", "data-quality", "ontology", "curation", "jev"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Software Development :: Quality Assurance",
+]
 dependencies = ["httpx>=0.27,<1", "PyYAML>=6,<7", "typer>=0.16,<1", "duckdb>=1.4,<2"]
 
 [project.urls]
+Homepage = "https://cmungall.github.io/jevotron/"
+Documentation = "https://cmungall.github.io/jevotron/"
 Repository = "https://github.com/cmungall/jevotron"
 Issues = "https://github.com/cmungall/jevotron/issues"
 
