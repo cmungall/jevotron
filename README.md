@@ -121,13 +121,17 @@ The [advanced docs](docs/advanced/parsers.md) cover that contract.
 
 ## Development
 
+[just](https://github.com/casey/just) wraps the checks. `just check` is exactly
+what CI runs, so a green local run means a green pull request.
+
 ```sh
-uv sync --group docs
-uv run pytest -q
-uv run ruff check .
-uv run ruff format --check .
-uv run --group docs mkdocs build --strict
-uv build
+just install      # sync the dev and docs dependency groups
+just check        # lint, tests, strict docs build, package build
+just              # list every recipe
 ```
+
+Individual steps are available too: `just test`, `just doctest`, `just lint`,
+`just fix`, `just docs`, `just serve`, `just build`. `just mypy` runs the type
+checker, which is not yet clean and so is not part of `just check`.
 
 Unit tests use fake responses and remove the API key; they make no paid calls.
