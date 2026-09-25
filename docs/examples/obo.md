@@ -70,3 +70,16 @@ jevotron scan units.obo --field /def/0 --guidance "The definition must match the
 ```
 
 This requests a different assessment from the captured config-based run above.
+
+Real ontologies are sparse: about 44% of `mondo-edit.obo` Term stanzas carry no
+`def`. Those entries are skipped and counted rather than ending the run, so the
+same command works on a full editors' file.
+
+```sh
+jt scan mondo-edit.obo --format-option stanza=Term --field /def/0 \
+  --guidance "The definition must be consistent with the term name."
+# Skipped 15974 entries lacking selected fields: /def/0 absent in 15974.
+```
+
+`--format-option stanza=Term` drops Typedef stanzas, which rarely carry a
+definition. See [selecting sparse fields](../guides/files.md#entries-that-do-not-all-carry-the-same-fields).

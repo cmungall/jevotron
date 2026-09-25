@@ -67,6 +67,7 @@ def preview(chunks: Iterable[Chunk], config: Config | None = None) -> Iterator[d
             "id": chunk.id,
             "source": chunk.source,
             "fields": paths,
+            "absent": list(chunk.absent or []),
             "request_hash": request_hash(request),
             "request": request,
         }
@@ -186,6 +187,7 @@ def scan(
                 worst.score,
                 worst.score >= config.threshold,
                 fields,
+                list(chunk.absent or []),
                 response["model"],
                 assessed_at,
                 key,
