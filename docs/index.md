@@ -5,9 +5,8 @@ hide:
 ---
 
 <div class="hero" markdown>
-<div class="eyebrow">Structured data · Independent judgments · Your terminal</div>
 
-# Find the fields worth a second look.
+# One-shot anomaly detection on the command line
 
 <p class="lead">Give jevotron a file and a little guidance. Get field-level anomaly scores, a focused review queue, and a cache that makes the next run cheaper.</p>
 
