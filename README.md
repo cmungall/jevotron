@@ -119,6 +119,32 @@ Flags handle common tasks. For custom formats or reusable settings, pass
 `--config jev_config.py`; a parser is an ordinary Python function yielding chunks.
 The [advanced docs](docs/advanced/parsers.md) cover that contract.
 
+## Optional research feeds
+
+`jevotron-feeds` is an experimental, separately invoked extension included in the
+package. It adds a `research-feed` preset (topic, relevance, content kind and
+actionability), bounded public Bluesky collection, normalized local imports, and
+local ranked digests. Source adapters load independently; future provider SDKs
+can be packaged as separate optional dependencies.
+It uses existing dependencies and loads only when invoked; ordinary `jevotron`
+commands retain their anomaly-detection behavior.
+
+```sh
+uv run jevotron-feeds presets
+uv run jevotron-feeds adapters
+uv run jevotron-feeds preview examples/classified_feeds/research-posts.jsonl --limit 1
+uv run jevotron-feeds digest examples/classified_feeds/research-posts.jsonl \
+  --output .jevotron/feeds/demo
+```
+
+These commands are offline. Classification is cache-only unless `--execute`
+explicitly enables paid API calls. The [feed guide](docs/guides/feeds.md) covers
+collection, classification, stale-result checks and limitations. For reusable
+named questions without anomaly semantics, use the
+[neutral Python classification API](docs/advanced/classification.md).
+The [adapter design](docs/advanced/feed-adapters.md) describes the implemented
+boundaries and future X/bibliographic integrations.
+
 ## Development
 
 [just](https://github.com/casey/just) wraps the checks. `just check` is exactly
