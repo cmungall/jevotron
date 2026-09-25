@@ -14,7 +14,7 @@ Repository = "https://github.com/cmungall/jevotron"
 Issues = "https://github.com/cmungall/jevotron/issues"
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.9"]
+dev = ["pytest>=8", "ruff>=0.9", "mypy>=1.11", "types-PyYAML>=6"]
 docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.6,<10"]
 
 [project.scripts]

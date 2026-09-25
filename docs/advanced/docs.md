@@ -49,7 +49,5 @@ Keep routine documentation focused on shell commands and complete workflows.
 Python API usage and custom parser implementation belong in Advanced.
 
 ```sh
-uv run pytest -q
-uv run ruff check .
-uv run ruff format --check .
+just check
 ```
