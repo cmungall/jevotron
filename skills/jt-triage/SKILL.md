@@ -17,8 +17,8 @@ refine the next pass. Do not infer that a high anomaly score proves an error.
   and other records as `NORMAL` so high scores rank the desired cases.
 - Check `jt --help` and `jt formats`. `jt` and `jevotron` are the same CLI. In a
   checkout use `uv run jt`; with an older installation use `jevotron` if needed.
-  To install the CLI with Python 3.12+ and uv:
-  `uv tool install git+https://github.com/cmungall/jevotron.git`.
+  To install the CLI with Python 3.12+: `uv tool install jevotron` or
+  `pip install jevotron`.
 - `preview` is local and requires no credential. Uncached scans send each full
   parsed entry, guidance, and exemplars to Jev and require `TYPESAFE_API_KEY` in
   the environment. Field selection limits scoring, not the entry context sent.
