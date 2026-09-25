@@ -85,9 +85,53 @@ jevotron preview units.obo --field /def/0
 | `/a~0b` | A key literally named `a~b` |
 | `''` | The whole entry (use `--field ''`) |
 
-A selected path must exist in every processed entry. Paths are exact: wildcard
-selection is not implemented. For varying structures, use a
+Paths are exact: wildcard selection is not implemented. For structures that need
+reshaping rather than selecting, use a
 [small custom parser](../advanced/parsers.md) through `--config`.
+
+## Entries that do not all carry the same fields
+
+A `--field` path is required: an entry that lacks it is skipped, and the run
+reports how many were skipped and which path was missing.
+
+```sh
+jevotron scan mondo-edit.obo --field /def/0
+# Skipped 16014 entries lacking selected fields: /def/0 absent in 16014.
+```
+
+Two options relax that requirement:
+
+| Option | An entry is assessed when |
+| --- | --- |
+| `--field` (default) | it carries every selected path |
+| `--optional-field` | it carries every `--field`; the optional path is scored where present |
+| `--relaxed` | it carries at least one selected path |
+
+```sh
+# Score the definition always, the comment wherever there is one.
+jevotron scan mondo-edit.obo --field /def/0 --optional-field /comment/0
+
+# Score whichever of the two a term happens to carry.
+jevotron scan mondo-edit.obo --field /def/0 --field /comment/0 --relaxed
+```
+
+An entry carrying none of the selected paths is always skipped, because there
+would be nothing to ask about. A path that matches **no** entry anywhere is a
+typo rather than sparse data, so the run fails with `Field does not exist`
+before making any API call.
+
+Each result lists the selected paths the entry did not carry:
+
+```json
+{"id": "MONDO:0000002", "fields": [{"path": "/def/0", ...}], "absent": ["/comment/0"]}
+```
+
+Read that alongside `score`. An entry's score is the highest score among the
+fields listed in `fields`, so an entry assessed on fewer fields had fewer
+chances to score highly. `absent` records what was never looked at, rather than
+letting it read as a field that passed. To rank entries without that effect,
+use `--output-format csv`, which emits one row per field, and sort by
+`field_score`.
 
 ## OBO behavior
 

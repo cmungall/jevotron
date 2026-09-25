@@ -29,8 +29,22 @@ def scalar_id(value: Any) -> str:
     return str(value)
 
 
-def resolve(data: Any, pointer: str) -> Any:
-    """Resolve an RFC 6901 JSON Pointer; the empty pointer selects the root."""
+# resolve() raises on absence unless the caller supplies its own default.
+_RAISE = object()
+_ABSENT = object()
+
+
+def resolve(data: Any, pointer: str, default: Any = _RAISE) -> Any:
+    """Resolve an RFC 6901 JSON Pointer; the empty pointer selects the root.
+
+    Pass `default` to receive it instead of an error when the pointer matches
+    nothing. A malformed pointer is a caller mistake and always raises.
+
+        >>> resolve({"def": ["a text definition"]}, "/def/0")
+        'a text definition'
+        >>> resolve({"def": []}, "/comment", None) is None
+        True
+    """
     if not isinstance(pointer, str) or (pointer and not pointer.startswith("/")):
         raise ValueError(f"Invalid JSON Pointer: {pointer!r}")
     value = data
@@ -48,8 +62,24 @@ def resolve(data: Any, pointer: str) -> Any:
             else:
                 raise ValueError
         except (KeyError, IndexError, ValueError) as exc:
+            if default is not _RAISE:
+                return default
             raise ValueError(f"Field does not exist: {pointer!r}") from exc
     return value
+
+
+def present(data: Any, pointer: str) -> bool:
+    """Whether a pointer selects anything, without treating absence as an error.
+
+    Entries in the same file need not carry the same fields, so callers that
+    select fields must be able to ask before they resolve.
+
+        >>> present({"def": "a text definition"}, "/def")
+        True
+        >>> present({"def": "a text definition"}, "/comment")
+        False
+    """
+    return resolve(data, pointer, _ABSENT) is not _ABSENT
 
 
 def validate_json(value: Any) -> None:
@@ -91,6 +121,9 @@ class Chunk:
     data: Any
     fields: list[str] | None = None
     source: str | None = None
+    # Selected fields this entry does not carry. Recorded so a score reports
+    # what was assessed; it never enters the request or its hash.
+    absent: list[str] | None = None
 
     def field_paths(self) -> list[str]:
         if not isinstance(self.id, str) or not self.id:
@@ -99,6 +132,8 @@ class Chunk:
             raise ValueError("Chunk.source must be a string or None")
         if self.fields is not None and not isinstance(self.fields, list):
             raise ValueError("Chunk.fields must be a list of JSON Pointer strings")
+        if self.absent is not None and not isinstance(self.absent, list):
+            raise ValueError("Chunk.absent must be a list of JSON Pointer strings")
         validate_json(self.data)
         if self.fields is None:
             paths = (
@@ -135,6 +170,7 @@ class Result:
     score: float
     warning: bool
     fields: list[FieldResult]
+    absent: list[str]
     model: str
     assessed_at: str
     request_hash: str

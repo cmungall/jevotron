@@ -5,6 +5,7 @@ import json
 import sqlite3
 import sys
 import zlib
+from collections import Counter
 from contextlib import ExitStack, closing
 from dataclasses import dataclass, replace
 from enum import Enum
@@ -18,7 +19,7 @@ import yaml
 from jevotron.client import JevError
 from jevotron.config import Config, load_config
 from jevotron.databases import Database
-from jevotron.models import json_text, pointer_key, resolve, scalar_id
+from jevotron.models import json_text, pointer_key, present, resolve, scalar_id
 from jevotron.parsers import (
     CSV,
     FORMATS,
@@ -83,7 +84,23 @@ Fields = Annotated[
     list[str] | None,
     typer.Option(
         "--field",
-        help="JSON Pointer to assess; repeat to select multiple fields.",
+        help="JSON Pointer to assess, required on every entry; repeat to select multiple fields.",
+        rich_help_panel="Input & guidance",
+    ),
+]
+OptionalFields = Annotated[
+    list[str] | None,
+    typer.Option(
+        "--optional-field",
+        help="JSON Pointer to assess only where present; repeat to select multiple fields.",
+        rich_help_panel="Input & guidance",
+    ),
+]
+Relaxed = Annotated[
+    bool,
+    typer.Option(
+        "--relaxed",
+        help="Treat every --field as optional: assess whichever are present.",
         rich_help_panel="Input & guidance",
     ),
 ]
@@ -147,6 +164,8 @@ class RunOptions:
     exemplars: Path | None = None
     model: str | None = None
     fields: list[str] | None = None
+    optional_fields: list[str] | None = None
+    relaxed: bool = False
     id_column: str | None = None
     limit: int | None = None
     output: Path | None = None
@@ -171,6 +190,8 @@ def preview_command(
     exemplars: Exemplars = None,
     model: Model = None,
     field: Fields = None,
+    optional_field: OptionalFields = None,
+    relaxed: Relaxed = False,
     id_column: IdColumn = None,
     limit: Annotated[int, typer.Option(min=1, help="Maximum entries to preview.")] = 3,
     output: Output = None,
@@ -190,6 +211,8 @@ def preview_command(
                 exemplars=exemplars,
                 model=model,
                 fields=field,
+                optional_fields=optional_field,
+                relaxed=relaxed,
                 id_column=id_column,
                 limit=limit,
                 output=output,
@@ -210,6 +233,8 @@ def scan_command(
     exemplars: Exemplars = None,
     model: Model = None,
     field: Fields = None,
+    optional_field: OptionalFields = None,
+    relaxed: Relaxed = False,
     id_column: IdColumn = None,
     limit: Annotated[
         int | None, typer.Option(min=1, help="Maximum entries to assess; default all.")
@@ -276,6 +301,8 @@ def scan_command(
                 exemplars=exemplars,
                 model=model,
                 fields=field,
+                optional_fields=optional_field,
+                relaxed=relaxed,
                 id_column=id_column,
                 limit=limit,
                 output=output,
@@ -345,15 +372,103 @@ def _format_options(items):
     return values
 
 
-def _selected(chunks, args):
+class FieldSelection:
+    """Which selected fields an entry must carry before it can be assessed.
+
+    Entries in one file need not carry the same fields, so a selected field that
+    some entries lack skips those entries rather than ending the run. A pointer
+    that matches nothing anywhere is a typo instead, and fails the run once the
+    input has been read, still before any inference.
+    """
+
+    def __init__(self, required: list[str], optional: list[str]) -> None:
+        self.required = required
+        self.optional = optional
+        self.seen = self.assessed = self.skipped = 0
+        self.found: Counter = Counter()
+        self.skip_causes: Counter = Counter()
+
+    @property
+    def active(self) -> bool:
+        return bool(self.required or self.optional)
+
+    def apply(self, chunk):
+        """Narrow a chunk to its present fields, or return None to skip it."""
+        self.seen += 1
+        keep, absent, blocking = [], [], []
+        for path in self.required:
+            if present(chunk.data, path):
+                keep.append(path)
+            else:
+                absent.append(path)
+                blocking.append(path)
+        for path in self.optional:
+            (keep if present(chunk.data, path) else absent).append(path)
+        self.found.update(keep)
+        # Assessing an entry that carries none of the selected fields asks nothing.
+        if blocking or not keep:
+            self.skipped += 1
+            # Name what caused the skip: a missing optional field never does,
+            # unless nothing at all was present.
+            self.skip_causes.update(blocking or absent)
+            return None
+        self.assessed += 1
+        return replace(chunk, fields=keep, absent=absent)
+
+    def verify(self) -> None:
+        """Reject a selection that no entry could satisfy, before any inference."""
+        if not self.active or self.assessed or not self.seen:
+            return
+        unmatched = [p for p in self.required + self.optional if not self.found[p]]
+        if unmatched:
+            raise ValueError(
+                "Field does not exist: " + ", ".join(repr(p) for p in unmatched)
+            )
+        raise ValueError(
+            "No entry has every required field: "
+            + ", ".join(repr(p) for p in self.required)
+        )
+
+    def report(self) -> str:
+        """Name what was skipped, so a short report is never silently short."""
+        if not self.skipped:
+            return ""
+        detail = ", ".join(
+            f"{p} absent in {n}" for p, n in self.skip_causes.most_common()
+        )
+        return f" Skipped {self.skipped} entries lacking selected fields: {detail}."
+
+
+def _selection(args) -> FieldSelection:
+    required = list(args.fields or [])
+    optional = list(args.optional_fields or [])
+    for path in required + optional:
+        # Read an unusable pointer as a mistake now, never as an absent field.
+        resolve({}, path, None)
+    for group, option in ((required, "--field"), (optional, "--optional-field")):
+        repeated = sorted({p for p, n in Counter(group).items() if n > 1})
+        if repeated:
+            raise ValueError(f"Repeated field for {option}: {', '.join(repeated)}")
+    both = sorted(set(required) & set(optional))
+    if both:
+        raise ValueError(f"Field is both required and optional: {', '.join(both)}")
+    if args.relaxed:
+        if not required and not optional:
+            raise ValueError("--relaxed requires --field or --optional-field")
+        required, optional = [], required + optional
+    return FieldSelection(required, optional)
+
+
+def _selected(chunks, args, selection):
     for chunk in chunks:
-        changes = {}
-        if args.fields:
-            changes["fields"] = args.fields
         if args.id_column is not None:
             value = resolve(chunk.data, pointer_key(args.id_column))
-            changes["id"] = scalar_id(value)
-        yield replace(chunk, **changes) if changes else chunk
+            chunk = replace(chunk, id=scalar_id(value))
+        if selection.active:
+            chunk = selection.apply(chunk)
+            if chunk is None:
+                continue
+        yield chunk
 
 
 def _write_csv(writer, result):
@@ -375,6 +490,7 @@ def _write_csv(writer, result):
                 "assessed_at": result.assessed_at,
                 "request_hash": result.request_hash,
                 "cached": result.cached,
+                "absent": json_text(result.absent),
             }
         )
 
@@ -404,6 +520,7 @@ def _run(args: RunOptions) -> int:
         if getattr(args, "threshold", None) is not None:
             config.threshold = args.threshold
         config.validate()
+        selection = _selection(args)
         if args.output:
             protected = [
                 args.file,
@@ -455,7 +572,7 @@ def _run(args: RunOptions) -> int:
         with ExitStack() as stack:
             if hasattr(chunks, "close"):
                 stack.enter_context(closing(chunks))
-            selected = _selected(chunks, selection_args)
+            selected = _selected(chunks, selection_args, selection)
             limited = (
                 islice(selected, args.limit) if args.limit is not None else selected
             )
@@ -468,6 +585,9 @@ def _run(args: RunOptions) -> int:
             if args.command == "preview":
                 for item in preview(limited, config):
                     print(json_text(item), file=output)
+                selection.verify()
+                if report := selection.report():
+                    print(report.strip(), file=sys.stderr)
                 return 0
             results = stack.enter_context(
                 closing(
@@ -499,6 +619,7 @@ def _run(args: RunOptions) -> int:
                         "assessed_at",
                         "request_hash",
                         "cached",
+                        "absent",
                     ],
                 )
                 writer.writeheader()
@@ -525,9 +646,10 @@ def _run(args: RunOptions) -> int:
                     write(result)
             for result in sorted(pending, key=lambda r: r.score, reverse=True):
                 write(result)
+            selection.verify()
         print(
             f"Assessed {count} entries ({cached} cached); {warnings} warnings; "
-            f"emitted {emitted} entries.",
+            f"emitted {emitted} entries." + selection.report(),
             file=sys.stderr,
         )
         return 0

@@ -26,7 +26,11 @@ refine the next pass. Do not infer that a high anomaly score proves an error.
   command; report that live assessment has not run.
 - Preview a few entries to discover structure and source locations. Prefer a
   stable, unique `--id-column` when one exists. Repeated `--field` flags take
-  exact JSON Pointers; selected paths must exist in every processed entry.
+  exact JSON Pointers. An entry lacking a selected path is skipped and counted,
+  so sparse inputs still scan; use `--optional-field` for a path only some
+  entries carry, or `--relaxed` to assess whichever selected paths are present.
+  A path matching no entry at all fails the run before any API call. Check the
+  skipped count in a preview before scanning: it is what the scan will not cover.
 
 ```sh
 jt preview data.csv --limit 3
