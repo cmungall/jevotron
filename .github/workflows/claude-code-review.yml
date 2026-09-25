@@ -1,0 +1,62 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # Supplying a `prompt` runs in automation mode, which posts nothing by
+          # default. track_progress restores the review-as-a-PR-comment behavior
+          # and injects the PR context.
+          track_progress: true
+
+          prompt: |
+            Review this pull request. Report what is wrong, not what is fine;
+            an empty review is a good outcome when nothing needs changing.
+
+            Look for, in rough order of value:
+            - Correctness bugs, especially in field selection, JSON Pointer
+              resolution, caching, and streaming iterator lifetimes.
+            - Silent failure. This project treats an unexpected exception as a
+              bug to investigate, not something to swallow. Flag any new
+              try/except that hides a cause or returns a default instead of
+              raising, and any behavior that drops entries without reporting it.
+            - Assessment cost and cache identity. A change to the request shape
+              invalidates cached assessments, which costs real money to rebuild.
+              Anything altering `make_request` or `request_hash` deserves a note.
+            - Test coverage. Tests are pytest style, no unittest. Behavior worth
+              keeping should have a test that would fail without the change, and
+              doctests are preferred where they also document.
+            - Parsimony. Prefer the smaller change: flag workarounds, duplicated
+              logic, and options that could have reused an existing one.
+
+            Match the surrounding style rather than imposing a general one: this
+            codebase uses sparse comments that explain why, not what.
+
+            Be specific and cite file:line. Say plainly when something is a
+            matter of taste rather than a defect.
+
+          # The `opus` alias tracks the current Opus, so this will not 404 when a
+          # dated model id is retired.
+          claude_args: |
+            --model opus
