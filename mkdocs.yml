@@ -66,6 +66,7 @@ nav:
       - Cache & repeat runs: guides/cache.md
       - Shell pipelines: guides/shell.md
       - Project configuration: guides/config.md
+      - Optional research feeds: guides/feeds.md
   - Examples:
       - Airports · CSV: examples/airports.md
       - Inventory · YAML: examples/inventory.md
@@ -76,4 +77,6 @@ nav:
   - Advanced:
       - Custom parsers: advanced/parsers.md
       - Python integration: advanced/python.md
+      - Named classification questions: advanced/classification.md
+      - Feed adapters: advanced/feed-adapters.md
       - Documentation development: advanced/docs.md

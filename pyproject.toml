@@ -36,6 +36,7 @@ docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.6,<10"]
 [project.scripts]
 jt = "jevotron.cli:main"
 jevotron = "jevotron.cli:main"
+jevotron-feeds = "jevotron.extensions.feeds.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "src"]
