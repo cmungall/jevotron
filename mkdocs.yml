@@ -64,6 +64,7 @@ nav:
       - Agent skills: guides/agents.md
       - Review & export: guides/reports.md
       - Cache & repeat runs: guides/cache.md
+      - Compare versions & CI: guides/compare.md
       - Shell pipelines: guides/shell.md
       - Project configuration: guides/config.md
   - Examples:
