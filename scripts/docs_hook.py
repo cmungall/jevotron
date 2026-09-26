@@ -71,6 +71,40 @@ def on_files(files, config):
             content=(ROOT / "examples/airports/spiked.csv").read_bytes(),
         )
     )
+    # Publish the canonical study report and its evidence, without a second
+    # hand-maintained copy of the analysis in docs/.
+    study = ROOT / "analysis/agent-traces"
+    analysis_bundle = BytesIO()
+    with ZipFile(analysis_bundle, "w") as archive:
+        for path in sorted(study.iterdir()):
+            if not path.is_file() or path.suffix not in {
+                ".md",
+                ".py",
+                ".json",
+                ".jsonl",
+            }:
+                continue
+            content = path.read_bytes()
+            archive.writestr(f"analysis/agent-traces/{path.name}", content)
+            if path.name == "README.md":
+                target = "index.md"
+                content = content.decode().replace(
+                    "](guidance.md)", "](guidance.md.txt)"
+                )
+            else:
+                target = path.name + (".txt" if path.suffix == ".md" else "")
+            files.append(
+                File.generated(
+                    config, f"analysis/agent-traces/{target}", content=content
+                )
+            )
+    files.append(
+        File.generated(
+            config,
+            "downloads/agent-trace-analysis.zip",
+            content=analysis_bundle.getvalue(),
+        )
+    )
     return files
 
 

@@ -11,6 +11,12 @@ Preview the input, scan every entry, and export a focused review queue. Each
 chunk is independent and sees the same optional guidance and exemplars.
 SQLite caching reuses assessments across file versions.
 
+**Example: classify agent traces.** In a 24-trace public-data pilot, jt matched
+130 of 163 published step-quality labels (79.8%). Harmful-step precision was
+89.7%, with 70.3% recall. This was a small, length-filtered sample.
+[Try the example](docs/examples/agent-traces.md) ·
+[Read the results and reproduce the analysis](analysis/agent-traces/README.md).
+
 ## Install and run
 
 Requires Python 3.12+.
@@ -123,6 +129,12 @@ GitHub Pages by the documentation workflow.
 | [Airports](examples/airports/) | Public-domain CSV, baseline and spiked versions, provenance, known changes |
 | [Inventory](examples/inventory/) | Synthetic YAML with written rules and a selected exemplar |
 | [Units](examples/units/) | Synthetic OBO with repeated tags and a custom local config |
+| [Agent traces](docs/examples/agent-traces.md) | Classify original public JSONL traces and individual steps; compare with published labels |
+
+Measured runs, sampling decisions, and reproduction scripts live in
+[analysis/](analysis/README.md). The
+[agent-trace pilot](analysis/agent-traces/README.md) includes all predictions,
+baselines, and inspection of successes and misses.
 
 Flags handle common tasks. For custom formats or reusable settings, pass
 `--config jev_config.py`; a parser is an ordinary Python function yielding chunks.

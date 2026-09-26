@@ -1,0 +1,294 @@
+{
+  "sources": [
+    {
+      "domain": "hotpotqa",
+      "url": "https://huggingface.co/datasets/LulaCola/AgentProcessBench/resolve/cd81f326aece8b0a3f6359e20df370690d3a98bf/hotpotqa/test.jsonl",
+      "sha256": "160eef2ded872d8dc6ddf4cee5752295fda691b6a9e99b5bafc2d484e6309c57",
+      "rows": 250,
+      "eligible": 248
+    },
+    {
+      "domain": "gaia_dev",
+      "url": "https://huggingface.co/datasets/LulaCola/AgentProcessBench/resolve/cd81f326aece8b0a3f6359e20df370690d3a98bf/gaia_dev/test.jsonl",
+      "sha256": "f7b75c668fc1e6ad943e8f6d93a21a9a8f5f076841e1230e1ed2fc6d05ce8192",
+      "rows": 250,
+      "eligible": 225
+    },
+    {
+      "domain": "bfcl",
+      "url": "https://huggingface.co/datasets/LulaCola/AgentProcessBench/resolve/cd81f326aece8b0a3f6359e20df370690d3a98bf/bfcl/test.jsonl",
+      "sha256": "6aee0b71eff7feb872c6b54d962f8831b56f7bebf770cba9cb657f219afb6fe5",
+      "rows": 250,
+      "eligible": 235
+    },
+    {
+      "domain": "tau2",
+      "url": "https://huggingface.co/datasets/LulaCola/AgentProcessBench/resolve/cd81f326aece8b0a3f6359e20df370690d3a98bf/tau2/test.jsonl",
+      "sha256": "6f22818ff88822512767fe735f56e7b78bed4b9aaf26959144feb92f127e1e95",
+      "rows": 250,
+      "eligible": 225
+    }
+  ],
+  "sample": [
+    {
+      "domain": "hotpotqa",
+      "total_index": 108,
+      "query_index": 21,
+      "final_label": -1,
+      "steps": 1,
+      "step_label_counts": {
+        "-1": 1
+      }
+    },
+    {
+      "domain": "hotpotqa",
+      "total_index": 27,
+      "query_index": 5,
+      "final_label": 1,
+      "steps": 2,
+      "step_label_counts": {
+        "1": 2
+      }
+    },
+    {
+      "domain": "hotpotqa",
+      "total_index": 149,
+      "query_index": 29,
+      "final_label": -1,
+      "steps": 6,
+      "step_label_counts": {
+        "1": 1,
+        "-1": 3,
+        "0": 2
+      }
+    },
+    {
+      "domain": "hotpotqa",
+      "total_index": 102,
+      "query_index": 20,
+      "final_label": 1,
+      "steps": 3,
+      "step_label_counts": {
+        "1": 3
+      }
+    },
+    {
+      "domain": "hotpotqa",
+      "total_index": 52,
+      "query_index": 10,
+      "final_label": -1,
+      "steps": 5,
+      "step_label_counts": {
+        "1": 1,
+        "0": 1,
+        "-1": 3
+      }
+    },
+    {
+      "domain": "hotpotqa",
+      "total_index": 75,
+      "query_index": 15,
+      "final_label": 1,
+      "steps": 4,
+      "step_label_counts": {
+        "1": 3,
+        "0": 1
+      }
+    },
+    {
+      "domain": "gaia_dev",
+      "total_index": 384,
+      "query_index": 26,
+      "final_label": -1,
+      "steps": 6,
+      "step_label_counts": {
+        "1": 4,
+        "0": 1,
+        "-1": 1
+      }
+    },
+    {
+      "domain": "gaia_dev",
+      "total_index": 373,
+      "query_index": 24,
+      "final_label": 1,
+      "steps": 3,
+      "step_label_counts": {
+        "1": 3
+      }
+    },
+    {
+      "domain": "gaia_dev",
+      "total_index": 452,
+      "query_index": 40,
+      "final_label": -1,
+      "steps": 6,
+      "step_label_counts": {
+        "1": 5,
+        "-1": 1
+      }
+    },
+    {
+      "domain": "gaia_dev",
+      "total_index": 322,
+      "query_index": 14,
+      "final_label": 1,
+      "steps": 3,
+      "step_label_counts": {
+        "0": 1,
+        "-1": 1,
+        "1": 1
+      }
+    },
+    {
+      "domain": "gaia_dev",
+      "total_index": 377,
+      "query_index": 25,
+      "final_label": -1,
+      "steps": 4,
+      "step_label_counts": {
+        "1": 3,
+        "-1": 1
+      }
+    },
+    {
+      "domain": "gaia_dev",
+      "total_index": 283,
+      "query_index": 6,
+      "final_label": 1,
+      "steps": 3,
+      "step_label_counts": {
+        "1": 3
+      }
+    },
+    {
+      "domain": "bfcl",
+      "total_index": 681,
+      "query_index": 36,
+      "final_label": -1,
+      "steps": 5,
+      "step_label_counts": {
+        "1": 3,
+        "-1": 2
+      }
+    },
+    {
+      "domain": "bfcl",
+      "total_index": 671,
+      "query_index": 34,
+      "final_label": 1,
+      "steps": 4,
+      "step_label_counts": {
+        "1": 4
+      }
+    },
+    {
+      "domain": "bfcl",
+      "total_index": 729,
+      "query_index": 45,
+      "final_label": -1,
+      "steps": 7,
+      "step_label_counts": {
+        "1": 6,
+        "0": 1
+      }
+    },
+    {
+      "domain": "bfcl",
+      "total_index": 735,
+      "query_index": 47,
+      "final_label": 1,
+      "steps": 11,
+      "step_label_counts": {
+        "1": 8,
+        "-1": 2,
+        "0": 1
+      }
+    },
+    {
+      "domain": "bfcl",
+      "total_index": 740,
+      "query_index": 48,
+      "final_label": -1,
+      "steps": 14,
+      "step_label_counts": {
+        "1": 6,
+        "-1": 8
+      }
+    },
+    {
+      "domain": "bfcl",
+      "total_index": 539,
+      "query_index": 7,
+      "final_label": 1,
+      "steps": 9,
+      "step_label_counts": {
+        "1": 9
+      }
+    },
+    {
+      "domain": "tau2",
+      "total_index": 766,
+      "query_index": 3,
+      "final_label": -1,
+      "steps": 4,
+      "step_label_counts": {
+        "1": 2,
+        "-1": 2
+      }
+    },
+    {
+      "domain": "tau2",
+      "total_index": 987,
+      "query_index": 47,
+      "final_label": 1,
+      "steps": 15,
+      "step_label_counts": {
+        "1": 15
+      }
+    },
+    {
+      "domain": "tau2",
+      "total_index": 796,
+      "query_index": 9,
+      "final_label": -1,
+      "steps": 8,
+      "step_label_counts": {
+        "1": 5,
+        "-1": 2,
+        "0": 1
+      }
+    },
+    {
+      "domain": "tau2",
+      "total_index": 854,
+      "query_index": 20,
+      "final_label": 1,
+      "steps": 15,
+      "step_label_counts": {
+        "1": 15
+      }
+    },
+    {
+      "domain": "tau2",
+      "total_index": 940,
+      "query_index": 38,
+      "final_label": -1,
+      "steps": 13,
+      "step_label_counts": {
+        "1": 3,
+        "-1": 10
+      }
+    },
+    {
+      "domain": "tau2",
+      "total_index": 801,
+      "query_index": 10,
+      "final_label": 1,
+      "steps": 12,
+      "step_label_counts": {
+        "1": 12
+      }
+    }
+  ]
+}
