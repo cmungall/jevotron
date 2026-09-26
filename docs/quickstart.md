@@ -90,6 +90,7 @@ jevotron preview stock.csv --guidance "Quantity must be nonnegative." --limit 1
 ```
 
 Preview returns JSONL containing the entry ID, source, selected field paths,
+any selected paths the entry lacks (`absent`),
 request hash, and exact request. It needs no API key, makes no network requests,
 and does not open the cache. By default, it shows three entries.
 

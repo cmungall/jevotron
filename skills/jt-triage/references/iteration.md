@@ -4,7 +4,7 @@
 
 CSV/TSV and JSONL parse record by record. Plain JSON loads the document before
 chunking; YAML loads each document, TOML loads the document, and text with
-`split=whole` loads the file. A small `--limit` does not avoid that initial load.
+`split=file` loads the file. A small `--limit` does not avoid that initial load.
 For inputs too large for those parsers, use a streaming conversion to JSONL or
 a custom parser with an appropriate streaming library. Preserve original IDs
 and source locations. Avoid splitting CSV or structured documents by raw lines.
@@ -81,8 +81,9 @@ Keep them short. Changing exemplars invalidates matching cached requests.
 
 ## Interpret and retain evidence
 
-JSONL contains one result per assessed entry, with `id`, `source`, `fields`,
-`score`, `warning`, `model`, `assessed_at`, `request_hash`, `cached`, and `usage`.
+JSONL contains one result per assessed entry, with `id`, `source`, `label`,
+`score`, `warning`, `fields`, `absent`, `model`, `assessed_at`, `request_hash`,
+`cached`, and `usage`. `absent` lists selected paths the entry did not carry.
 Each field includes its JSON Pointer `path`, `value`, `label`, `probabilities`,
 `confidence`, and `score`. There is no generated prose explanation: use the
 original record and domain evidence to explain why a candidate matters.

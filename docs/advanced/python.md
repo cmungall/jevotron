@@ -21,3 +21,15 @@ Pass `cache=None` to disable persistence. An injected client implements
 offline testing and external integrations straightforward. If stopping a scan
 early, close its iterator (or use `contextlib.closing`) to release resources.
 The caller owns an injected client's lifetime.
+
+`preview(chunks, config=None)` yields the exact requests `scan` would send, as
+dictionaries with `id`, `source`, `fields`, `absent`, `request_hash`, and
+`request`. Like the CLI command, it needs no credentials, opens no cache, and
+makes no network calls:
+
+```python
+from jevotron import Config, preview
+
+for item in preview(chunks, Config(guidance="Check geographic consistency.")):
+    print(item["id"], item["request_hash"])
+```

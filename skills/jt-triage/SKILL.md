@@ -29,8 +29,10 @@ refine the next pass. Do not infer that a high anomaly score proves an error.
   exact JSON Pointers. An entry lacking a selected path is skipped and counted,
   so sparse inputs still scan; use `--optional-field` for a path only some
   entries carry, or `--relaxed` to assess whichever selected paths are present.
-  A path matching no entry at all fails the run before any API call. Check the
-  skipped count in a preview before scanning: it is what the scan will not cover.
+  A run fails before any API call only when no entry can be assessed; a
+  mistyped `--optional-field` or `--relaxed` path is accepted silently and shows
+  up only in `absent`. Preview counts skips only among the entries it reads
+  (default `--limit 3`), so raise `--limit` for a representative skipped count.
 
 ```sh
 jt preview data.csv --limit 3

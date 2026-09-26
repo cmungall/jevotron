@@ -129,7 +129,9 @@ GitHub Pages by the documentation workflow.
 | [Airports](examples/airports/) | Public-domain CSV, baseline and spiked versions, provenance, known changes |
 | [Inventory](examples/inventory/) | Synthetic YAML with written rules and a selected exemplar |
 | [Units](examples/units/) | Synthetic OBO with repeated tags and a custom local config |
-| [Agent traces](docs/examples/agent-traces.md) | Classify original public JSONL traces and individual steps; compare with published labels |
+| [Agent traces](examples/agent-traces/) | Classify original public JSONL traces and individual steps; compare with published labels ([walkthrough](docs/examples/agent-traces.md)) |
+| [Formats](examples/formats/) | One small file per built-in format, with preview commands |
+| [Databases](examples/databases/) | Script that builds SQLite and DuckDB demo databases |
 
 Measured runs, sampling decisions, and reproduction scripts live in
 [analysis/](analysis/README.md). The

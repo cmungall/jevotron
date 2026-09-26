@@ -39,6 +39,7 @@ config = Config(parser=parse)
 | `data` | JSON-compatible object, array, or scalar; the entry shown to Jev. Object keys must be strings. |
 | `fields` | Optional list of JSON Pointers to score. Defaults to top-level object keys, or the root for other values. |
 | `source` | Optional string locating the original entry; carried into reports. |
+| `absent` | Optional list of selected JSON Pointers the entry does not carry; reported as `absent`, never sent to Jev or hashed. |
 
 Field paths use JSON Pointer syntax: `/name`, `/terms/0/start`, `/synonym/1`.
 Escape a literal `/` in a key as `~1` and a literal `~` as `~0`. The empty path
@@ -84,7 +85,7 @@ config = Config(parser=parse)
 ```
 
 The parser in a config controls parsing completely; set its options there.
-The CLI rejects `--format` and `--format-option` alongside a custom parser.
+The CLI rejects `--format`, `--format-option`, and `--table` alongside a custom parser.
 `--field` and `--id-column` still override fields and IDs on its yielded chunks.
 Built-in adapters apply an ID override before validating the configured ID column.
 Custom parser code must successfully yield a chunk before its ID can be replaced.

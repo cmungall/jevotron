@@ -116,9 +116,12 @@ jevotron scan mondo-edit.obo --field /def/0 --field /comment/0 --relaxed
 ```
 
 An entry carrying none of the selected paths is always skipped, because there
-would be nothing to ask about. A path that matches **no** entry anywhere is a
-typo rather than sparse data, so the run fails with `Field does not exist`
-before making any API call.
+would be nothing to ask about. If no entry can be assessed at all, the run fails
+before any API call, naming any path that matched nothing (`Field does not
+exist`). That check covers only the case where nothing is assessed: a mistyped
+`--optional-field`, or a mistyped path under `--relaxed`, is accepted as long as
+other selected paths match, and appears only in each result's `absent` list.
+Preview a sample with a generous `--limit` to catch it.
 
 Each result lists the selected paths the entry did not carry:
 
