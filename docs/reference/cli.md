@@ -20,4 +20,5 @@ and complete cache replays do not require it.
 Explicit CLI flags override project config values. Parser defaults apply when
 neither provides a setting. See [project configuration](../guides/config.md).
 An explicit `Config(parser=...)` owns parsing; set its options in that Python
-config. Combining a custom parser with `--format` or `--format-option` is an error.
+config. Combining a custom parser with `--format`, `--format-option`, or `--table`
+is an error.
