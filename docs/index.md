@@ -85,3 +85,14 @@ highest field anomaly probability; you choose the threshold.
 | [Airports / CSV](examples/airports.md) | Find two injected country errors in public data, then compare versions. |
 | [Inventory / YAML](examples/inventory.md) | Apply written rules and a chosen exemplar to stock records. |
 | [Measurement units / OBO](examples/obo.md) | Score definitions and repeated synonyms within independent stanzas. |
+| [Agent traces / JSONL](examples/agent-traces.md) | Classify public agent traces and individual steps, then compare with published labels. |
+
+### Agent traces: a measured pilot
+
+On a small, length-filtered sample of **24 public traces**, jt matched **130 of
+163 step-quality labels (79.8%)**. Harmful-step precision was **89.7%**, with
+**70.3% recall**. The example uses original messages and tool definitions, with
+human labels withheld from the model.
+
+[Try the trace example →](examples/agent-traces.md) ·
+[Read the full analysis and limitations →](analysis/agent-traces/index.md)

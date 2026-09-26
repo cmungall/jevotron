@@ -70,6 +70,9 @@ nav:
       - Airports · CSV: examples/airports.md
       - Inventory · YAML: examples/inventory.md
       - Measurement units · OBO: examples/obo.md
+      - Agent traces · JSONL: examples/agent-traces.md
+  - Analysis:
+      - Agent trace pilot: analysis/agent-traces/index.md
   - Reference:
       - CLI commands: reference/cli.md
       - File formats: reference/formats.md
