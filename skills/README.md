@@ -45,13 +45,14 @@ installations. The marketplace definition follows the
 ## Install the runtime
 
 Skills do not install the Python CLI or supply API credentials. With Python
-3.12+ and uv:
+3.12+:
 
 ```sh
-uv tool install git+https://github.com/cmungall/jevotron.git
+uv tool install jevotron   # or: pip install jevotron
 jt --help
 ```
 
-From a checkout, use `uv tool install .` or `uv run jt` instead. Preview is local
+`uvx --from jevotron jt ...` runs it without installing. From a checkout, use
+`uv run jt` instead. Preview is local
 and free; uncached scans require `TYPESAFE_API_KEY` and send records to Jev.
 See the [agent workflow guide](../docs/guides/agents.md) for the review loop.

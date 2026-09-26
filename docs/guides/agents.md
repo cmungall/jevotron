@@ -24,12 +24,13 @@ The skill installs instructions and a Python helper for selecting a bounded
 shortlist from saved results. Install the runtime separately:
 
 ```sh
-uv tool install git+https://github.com/cmungall/jevotron.git
+uv tool install jevotron
 jt --help
 ```
 
-Requires Python 3.12+ and uv. In a checkout, `uv run jt` works too. `jt` is an
-alias for `jevotron`. [Configure `TYPESAFE_API_KEY`](../quickstart.md#set-your-api-key)
+Requires Python 3.12+. `pip install jevotron` works the same way, and
+`uvx --from jevotron jt ...` runs it without installing. In a checkout,
+`uv run jt` works too. `jt` is an alias for `jevotron`. [Configure `TYPESAFE_API_KEY`](../quickstart.md#set-your-api-key)
 for live scans; preview and complete cache replays do not require a key.
 Uncached scans send full parsed entries, guidance, and exemplars to Jev.
 

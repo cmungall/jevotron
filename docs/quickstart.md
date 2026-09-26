@@ -1,21 +1,54 @@
 # Your first scan
 
-Go from a CSV file to a review queue in three commands. You need Python 3.12+
-and [uv](https://docs.astral.sh/uv/).
+Go from a CSV file to a review queue in three commands. You need Python 3.12+.
 
 ## Install the CLI
 
-From your local checkout:
+=== "uvx"
 
-```sh
-uv tool install .
-jevotron --help
-```
+    Runs the published release without installing it, which is the shortest way
+    to try a single command:
 
-This installs the `jevotron` command in an isolated environment. If needed, run
-`uv tool update-shell` and restart your shell to put it on your path.
-For development, `uv sync` followed by `uv run jevotron ...` uses the checkout
-directly. This project does not yet assume a published PyPI release.
+    ```sh
+    uvx jevotron --help
+    ```
+
+    Use `uvx --from jevotron jt ...` for the short `jt` alias.
+
+=== "uv tool"
+
+    Installs `jevotron` and `jt` on your path in an isolated environment:
+
+    ```sh
+    uv tool install jevotron
+    jevotron --help
+    ```
+
+    If the commands are not found, run `uv tool update-shell` and restart your
+    shell.
+
+=== "pip"
+
+    ```sh
+    pip install jevotron
+    jevotron --help
+    ```
+
+    A virtual environment is worth using here, as for any CLI installed with
+    pip.
+
+=== "from a checkout"
+
+    For development, or to run an unreleased change:
+
+    ```sh
+    git clone https://github.com/cmungall/jevotron.git
+    cd jevotron
+    uv sync
+    uv run jevotron --help
+    ```
+
+    `just` wraps the checks: `just check` runs what CI runs.
 
 ## Set your API key
 

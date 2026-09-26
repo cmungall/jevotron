@@ -1,5 +1,9 @@
 # jevotron
 
+[![PyPI](https://img.shields.io/pypi/v/jevotron)](https://pypi.org/project/jevotron/)
+[![Python](https://img.shields.io/pypi/pyversions/jevotron)](https://pypi.org/project/jevotron/)
+[![License](https://img.shields.io/pypi/l/jevotron)](https://github.com/cmungall/jevotron/blob/main/LICENSE)
+
 **Find the fields worth a second look.** A CLI for field-level anomaly detection
 in tabular, structured, and text files, SQLite, and DuckDB, powered by [Jev](https://docs.typesafe.ai/api).
 
@@ -9,20 +13,26 @@ SQLite caching reuses assessments across file versions.
 
 ## Install and run
 
-Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/). From this checkout:
+Requires Python 3.12+.
 
 ```sh
-uv tool install .
-jevotron --help
+uvx jevotron --help          # run it without installing anything
+uv tool install jevotron     # or keep it on your path
+pip install jevotron         # or install it the usual way
+```
 
-# Preview is free and needs no API key.
-jevotron preview examples/airports/spiked.csv \
-  --id-column ident --field /iso_country --limit 1
+Try it on the example file, no API key and no checkout needed:
+
+```sh
+curl -sO https://cmungall.github.io/jevotron/downloads/airports/spiked.csv
+
+# Preview is free: it shows the exact request without sending it.
+jevotron preview spiked.csv --id-column ident --field /iso_country --limit 1
 
 # Get a key from https://console.typesafe.ai/ and set it in this shell.
 export TYPESAFE_API_KEY="your-api-key"
 
-jevotron scan examples/airports/spiked.csv --guidance "Check airport locations."
+jevotron scan spiked.csv --guidance "Check airport locations."
 ```
 
 `jt` is a short alias for `jevotron`; both accept the same commands and options.
@@ -70,8 +80,7 @@ npx skills add cmungall/jevotron --skill jt-triage
 
 The skill installer supports multiple agents; it installs instructions and a
 local shortlist helper. Install the CLI separately with
-`uv tool install git+https://github.com/cmungall/jevotron.git` and set
-`TYPESAFE_API_KEY` for live scans.
+`uv tool install jevotron` and set `TYPESAFE_API_KEY` for live scans.
 
 Try: “Use jt to find inconsistent country assignments in this large airport
 file. Pilot the rules, investigate the strongest cases, then scan the full file
