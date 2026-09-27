@@ -108,7 +108,7 @@ def prepare(chunk: Chunk, config: Config, options: BatchOptions) -> EntryPlan:
     # neighbors, cache hits, and batch size so cache identities remain stable.
     saving = 2 * baseline - (2 * shared_total - shared_state)
     economical = saving >= max(256, 0.1 * 2 * baseline)
-    use_shared = options.size != 1 and (options.size != "auto" or economical)
+    use_shared = options.size != "auto" or economical
     # A shared question repeats the entry. Auto can retain the old layout when
     # that repetition would exceed the individual context budget.
     if options.size == "auto" and shared_context > options.context_tokens:
