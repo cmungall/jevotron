@@ -7,6 +7,7 @@ import pytest
 from jevotron import Chunk, Config, preview, scan
 from jevotron.batching import BatchOptions, estimate_request, pack, prepare
 from jevotron.client import ContextLimitError, JevError
+from jevotron.requests import make_request, request_hash
 from jevotron.runner import ScanStats
 
 
@@ -110,19 +111,68 @@ def test_token_budget_splits_one_entry_and_reassembles(fake, cache_path):
     assert replay.cached and replay.request_hash == result.request_hash
 
 
-def test_entry_mode_can_split_many_fields(fake):
+def test_entry_mode_keeps_many_fields_in_original_request(fake):
+    chunks = entries(1, fields=12)
+    original, _ = make_request(chunks[0], Config())
     results = list(
         scan(
-            entries(1, fields=12),
+            chunks,
             batch_size=1,
             batch_tokens=2000,
             cache=None,
             client=fake,
         )
     )
-    assert len(results) == 1 and len(fake.requests) > 1
+    assert len(results) == 1 and fake.requests == [original]
     assert len(results[0].fields) == 12
-    assert all("entry" in r["state"] for r in fake.requests)
+    assert results[0].request_hash == request_hash(original)
+
+
+@pytest.mark.parametrize("size", [1, "auto"])
+def test_legacy_large_context_is_sent_unchanged_and_reuses_cache(
+    fake, cache_path, size
+):
+    chunks = entries(1)
+    config = Config(guidance="These are valid instructions. " * 3000)
+    original, _ = make_request(chunks[0], config)
+    assert estimate_request(original)[1] > 32000
+    shown = list(preview(chunks, config, batch_size=size))[0]
+    assert shown["request"] == original and shown["layout"] == "entry-v1"
+    result = list(scan(chunks, config, cache=cache_path, client=fake, batch_size=size))[
+        0
+    ]
+    assert fake.requests == [original]
+    assert result.request_hash == shown["request_hash"] == request_hash(original)
+    replay = list(scan(chunks, config, cache=cache_path, batch_size=1, batch_tokens=1))[
+        0
+    ]
+    assert replay.cached and replay.request_hash == result.request_hash
+
+
+def test_legacy_splits_only_after_confirmed_rejection(fake, cache_path):
+    attempts = []
+
+    class SmallServer:
+        def evaluate(self, request):
+            attempts.append(request)
+            if len(request["questions"]) > 2:
+                raise ContextLimitError("too big")
+            return fake.evaluate(request)
+
+    chunks = entries(1, 4)
+    original, _ = make_request(chunks[0], Config())
+    result = list(scan(chunks, cache=cache_path, client=SmallServer(), batch_tokens=1))[
+        0
+    ]
+    assert attempts[0] == original
+    assert len(attempts) == 3 and len(result.fields) == 4
+    assert result.request_hash == request_hash(original)
+    assert len(result.usage["batch_request_hashes"]) == 2
+    assert {k: q for r in attempts[1:] for k, q in r["questions"].items()} == original[
+        "questions"
+    ]
+    assert all(r["state"] == original["state"] for r in attempts[1:])
+    assert list(scan(chunks, cache=cache_path))[0].cached
 
 
 def test_budget_boundary_exact_fit_and_one_token_short():
@@ -135,11 +185,10 @@ def test_budget_boundary_exact_fit_and_one_token_short():
     assert len(list(pack(plans, BatchOptions(2, exact - 1)))) == 2
 
 
-@pytest.mark.parametrize("size", ["auto", 1, 8])
-def test_oversized_individual_context_fails_before_network(fake, size):
+def test_oversized_shared_context_fails_before_network(fake):
     chunks = [Chunk("large", {"value": "x" * 5000})]
     with pytest.raises(ValueError, match="Entry 'large'.*largest question"):
-        list(scan(chunks, batch_size=size, batch_tokens=2000, cache=None, client=fake))
+        list(scan(chunks, batch_size=8, batch_tokens=2000, cache=None, client=fake))
     assert not fake.requests
 
 
@@ -258,6 +307,7 @@ def test_shared_duplicate_content_has_one_assessment_and_ordered_results(
     assert [r.id for r in results] == ["0", "copy"]
     assert results[1].source == "other-file"
     assert results[0].request_hash == results[1].request_hash
+    assert [r.cached for r in results] == [False, True]
     assert len(fake.requests[0]["questions"]) == 2
     assert all(r.cached for r in scan(chunks, batch_size=2, cache=cache_path))
 
@@ -320,7 +370,7 @@ def test_unsplittable_server_context_fails_bounded(long_guide, cache_path):
             calls.append(request)
             raise ContextLimitError("too big")
 
-    with pytest.raises(ContextLimitError, match="Nothing was truncated"):
+    with pytest.raises(ContextLimitError, match="Nothing was truncated") as caught:
         list(
             scan(
                 entries(2),
@@ -331,6 +381,8 @@ def test_unsplittable_server_context_fails_bounded(long_guide, cache_path):
             )
         )
     assert len(calls) == 3  # four questions -> two -> one
+    assert isinstance(caught.value.__cause__, ContextLimitError)
+    assert str(caught.value.__cause__) == "too big"
     with sqlite3.connect(cache_path) as db:
         assert db.execute("SELECT count(*) FROM assessments").fetchone()[0] == 0
 

@@ -161,13 +161,13 @@ def _evaluate(batch: Batch, client: Evaluator, stats: ScanStats, depth=0):
     stats.api_calls += 1
     try:
         response = client.evaluate(batch.request)
-    except ContextLimitError:
+    except ContextLimitError as error:
         keys = list(batch.owners)
         if len(keys) == 1 or depth >= 10:
             raise ContextLimitError(
                 "Jev rejected the context size after splitting; reduce guidance, "
                 "exemplars, or entry context. Nothing was truncated."
-            ) from None
+            ) from error
         middle = len(keys) // 2
         for subset in (keys[:middle], keys[middle:]):
             child = Batch(
@@ -320,7 +320,7 @@ def scan(
                         )
                         for alias in aliases.get(position, []):
                             ready[alias] = _result(
-                                group[alias], entry_response, stamp, False, config
+                                group[alias], entry_response, stamp, True, config
                             )
                     while next_position in ready:
                         yield ready.pop(next_position)

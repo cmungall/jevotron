@@ -12,6 +12,10 @@ Only changed assessments need new API calls. Entries can move within a file or
 appear under a different filename and still reuse their saved assessments.
 The stderr summary reports how many entries were cached.
 
+Identical entries in a shared batch reuse one assessment. Subsequent copies are
+reported as `cached: true`, including in-memory reuse with `--no-cache`; they do
+not cause another API call.
+
 ## Share a cache between directories
 
 ```sh
@@ -83,6 +87,10 @@ the actual planned request and `entries[].assessment_hash` for each cache key.
 An entry split across several API requests is cached only after all its fields
 validate successfully. Complete entries from earlier successful requests remain
 cached if a later request fails. Partial entries are reassessed on the next run.
+Per-entry requests are never split based on token estimates. If Jev rejects a
+whole request for context size, its questions may be retried in smaller groups
+with identical state and question contents. The canonical assessment key remains
+the same; `usage.batch_request_hashes` identifies the actual successful requests.
 The stderr usage summary counts new successful responses once per request and
 excludes cache hits; reported API calls count logical submissions, including
 context-splitting attempts, but exclude HTTP retries internal to the client.

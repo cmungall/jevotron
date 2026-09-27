@@ -80,6 +80,8 @@ class EntryPlan:
 
 def prepare(chunk: Chunk, config: Config, options: BatchOptions) -> EntryPlan:
     legacy, paths = make_request(chunk, config)
+    if options.size == 1:
+        return EntryPlan(chunk, legacy, paths, "entry-v1", request_hash(legacy))
     shared = {
         "model": config.model,
         "state": {"guidance": config.guidance, "exemplars": config.exemplars},
@@ -114,7 +116,7 @@ def prepare(chunk: Chunk, config: Config, options: BatchOptions) -> EntryPlan:
     request = shared if use_shared else legacy
     layout = "shared-v1" if use_shared else "entry-v1"
     _, context = estimate_request(request)
-    if context > options.context_tokens:
+    if use_shared and context > options.context_tokens:
         raise ValueError(
             f"Entry {chunk.id!r}: estimated state + largest question is {context} "
             f"tokens, above the {options.context_tokens} budget. Reduce guidance, "
@@ -144,19 +146,26 @@ class Batch:
 
 
 def pack(plans: list[EntryPlan], options: BatchOptions) -> Iterator[Batch]:
-    """Pack compatible entries; split even one entry's questions when necessary."""
+    """Pack shared questions by estimates; send legacy requests unchanged."""
     request = None
     owners = {}
     total = 0
     active_entries = set()
     for index, plan in enumerate(plans):
+        if plan.layout == "entry-v1":
+            if owners:
+                yield Batch(request, owners)
+                request, owners, active_entries = None, {}, set()
+            yield Batch(
+                plan.request,
+                {key: (index, key) for key in plan.request["questions"]},
+            )
+            continue
         for field_key, question in plan.request["questions"].items():
             size = estimate_tokens(question)
             compatible = request is not None and (
-                plan.layout == "shared-v1"
-                and request["state"] == plan.request["state"]
+                request["state"] == plan.request["state"]
                 and request["model"] == plan.request["model"]
-                or active_entries == {index}
             )
             if owners and (
                 not compatible
@@ -169,13 +178,8 @@ def pack(plans: list[EntryPlan], options: BatchOptions) -> Iterator[Batch]:
             if request is None:
                 request = {**plan.request, "questions": {}}
                 total = estimate_tokens(request["state"]) + 64
-            # Preserve historical keys on entry requests; shared keys only route
-            # responses in code and contain no user identifiers.
-            key = (
-                f"entry_{index}_{field_key}"
-                if plan.layout == "shared-v1"
-                else field_key
-            )
+            # Shared keys route responses in code and contain no user identifiers.
+            key = f"entry_{index}_{field_key}"
             request["questions"][key] = question
             owners[key] = index, field_key
             active_entries.add(index)

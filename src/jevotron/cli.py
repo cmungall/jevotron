@@ -95,7 +95,7 @@ BatchTokens = Annotated[
     typer.Option(
         min=1,
         max=64000,
-        help="Estimated token budget per request; state plus largest question is limited to half this budget.",
+        help="Estimated budget for shared-guidance requests; state plus largest question is limited to half this budget. Per-entry requests are sent whole until Jev rejects their size.",
         rich_help_panel="Batching",
     ),
 ]
@@ -602,6 +602,8 @@ def _run(args: RunOptions) -> int:
     count = cached = warnings = emitted = 0
     stats = ScanStats()
     try:
+        # Validate before opening/truncating output; scan/preview validate lazily
+        # and also serve Python callers without the CLI's argument checks.
         BatchOptions(args.batch_size, args.batch_tokens)
         if args.sort_score and args.sort_confidence:
             raise ValueError("Use either --sort-score or --sort-confidence, not both")

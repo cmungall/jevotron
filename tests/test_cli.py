@@ -624,10 +624,16 @@ def test_cli_batch_preview_and_scan(input_file, tmp_path, fake, monkeypatch, cap
 
 
 @pytest.mark.parametrize("command", ["preview", "scan"])
-def test_invalid_batch_size_fails_before_output(input_file, capsys, command):
-    assert main([command, str(input_file), "--batch-size", "invalid"]) == 1
+def test_invalid_batch_size_fails_before_output(input_file, capsys, tmp_path, command):
+    target = tmp_path / "report.jsonl"
+    target.write_text("Keep existing report")
+    assert (
+        main([command, str(input_file), "--batch-size", "invalid", "-o", str(target)])
+        == 1
+    )
     output = capsys.readouterr()
     assert not output.out and "batch-size" in output.err
+    assert target.read_text() == "Keep existing report"
 
 
 def test_guidance_overrides_config(input_file, tmp_path, capsys):

@@ -64,9 +64,9 @@ jevotron preview data.csv --guidance-file rules.md --batch-size auto --limit 100
 | Option | Behavior |
 | --- | --- |
 | `--batch-size auto` | Choose an economical layout for each entry; pack up to 64 entries per request within token budgets. |
-| `--batch-size 1` | Use the original per-entry layout. Many field questions can still require several requests. |
+| `--batch-size 1` | Send the original per-entry request whole. Split questions only after Jev confirms a context-limit error. |
 | `--batch-size N` | Use shared guidance, with at most N entries per request. Token budgets may force smaller batches. |
-| `--batch-tokens N` | Target estimated total input size; default 48,000, maximum 64,000. State plus the largest question must fit within half this budget. |
+| `--batch-tokens N` | Target estimated total input size for shared-guidance packing; default 48,000, maximum 64,000. Shared state plus the largest question must fit within half this budget. |
 
 Each selected field remains a separate question. In the shared layout, guidance
 and exemplars appear once in `state`; each question includes its own complete
@@ -95,6 +95,11 @@ estimates one token per two UTF-8 bytes of canonical JSON, plus overhead. These
 estimates intentionally err high for ordinary English/JSON, but are not exact
 counts or guaranteed upper bounds. The scan summary shows returned usage and
 estimated input tokens for successful requests, allowing comparison on your data.
+
+These estimates constrain only shared-guidance requests. Per-entry requests,
+including those selected by `auto`, are sent unchanged even when estimates exceed
+the budgets. Their preview estimates are informational. This preserves existing
+requests and cache keys and lets Jev decide whether the actual input fits.
 
 A confirmed server token/context rejection splits a request's questions in half
 and retries, with a bounded recursion depth. Ordinary validation errors stop the
