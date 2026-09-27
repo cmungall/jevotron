@@ -8,9 +8,13 @@ jevotron scan data-v1.csv --guidance-file rules.md -o v1.jsonl
 jevotron scan data-v2.csv --guidance-file rules.md -o v2.jsonl
 ```
 
-Only changed requests need new API calls. Entries can move within a file or
+Only changed assessments need new API calls. Entries can move within a file or
 appear under a different filename and still reuse their saved assessments.
 The stderr summary reports how many entries were cached.
+
+Identical entries in a shared batch reuse one assessment. Subsequent copies are
+reported as `cached: true`, including in-memory reuse with `--no-cache`; they do
+not cause another API call.
 
 ## Share a cache between directories
 
@@ -43,6 +47,8 @@ jevotron scan data.csv --no-cache
 | Threshold, sorting, output format | No |
 | Object-key or field-selection order | No |
 | Parser code | Only if the model input changes |
+| Batch membership, record order, or batch size within the shared layout | No |
+| Switching between per-entry and shared layouts | Yes: the prompt changes |
 
 The default model is pinned to `jev-1.13.0`. If you choose a moving alias such
 as `jev-latest`, the saved result stays in use until you refresh or change the
@@ -61,3 +67,30 @@ A run consisting entirely of cache hits does not need `TYPESAFE_API_KEY`. Any
 cache miss does. The cache stores full requests and responses for inspection,
 but never the API key. Changed inputs create new records; `--refresh` replaces
 the matching record. This is a cache, not an assessment-history database.
+
+## Batched request provenance
+
+Shared-layout assessments have a versioned, per-entry identity that includes the
+model, complete entry, selected fields, guidance, exemplars, and criteria. The
+result's `request_hash` identifies that canonical assessment, independent of the
+actual batch. Per-entry requests retain their historical cache keys. Automatic
+layout selection may differ from an explicitly forced layout; only identical
+layouts and inputs share cached assessments.
+
+The `assessments` table stores canonical per-entry requests and complete answers.
+The `batch_requests` table stores actual shared or split API requests and responses
+under their wire request hashes, including the original usage. Shared or split assessments
+reference those records through `usage.batch_request_hashes`, so a shared token
+bill is not repeated as per-entry token totals. Preview uses `request_hash` for
+the actual planned request and `entries[].assessment_hash` for each cache key.
+
+An entry split across several API requests is cached only after all its fields
+validate successfully. Complete entries from earlier successful requests remain
+cached if a later request fails. Partial entries are reassessed on the next run.
+Per-entry requests are never split based on token estimates. If Jev rejects a
+whole request for context size, its questions may be retried in smaller groups
+with identical state and question contents. The canonical assessment key remains
+the same; `usage.batch_request_hashes` identifies the actual successful requests.
+The stderr usage summary counts new successful responses once per request and
+excludes cache hits; reported API calls count logical submissions, including
+context-splitting attempts, but exclude HTTP retries internal to the client.

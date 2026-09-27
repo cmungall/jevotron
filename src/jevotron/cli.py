@@ -17,6 +17,7 @@ import duckdb
 import typer
 import yaml
 
+from jevotron.batching import DEFAULT_BATCH_SIZE, DEFAULT_BATCH_TOKENS, BatchOptions
 from jevotron.client import JevError
 from jevotron.config import Config, load_config
 from jevotron.databases import Database
@@ -32,7 +33,7 @@ from jevotron.parsers import (
     format_spec,
 )
 from jevotron.reports import FIELD_COLUMNS, ReportQuery, report_rows
-from jevotron.runner import preview, scan
+from jevotron.runner import ScanStats, preview, scan
 
 app = typer.Typer(
     help="Find suspicious fields in files and databases. Preview, scan, and review warnings.",
@@ -58,14 +59,14 @@ ConfigFile = Annotated[
 Guidance = Annotated[
     str | None,
     typer.Option(
-        help="Inline instructions describing what is correct.",
+        help="Inline instructions describing what is correct; appended after --guidance-file when both are given.",
         rich_help_panel="Input & guidance",
     ),
 ]
 GuidanceFile = Annotated[
     Path | None,
     typer.Option(
-        help="Read guidance from a UTF-8 document (instead of --guidance).",
+        help="Read guidance from a UTF-8 document; may be combined with --guidance.",
         rich_help_panel="Input & guidance",
     ),
 ]
@@ -80,6 +81,22 @@ Model = Annotated[
     typer.Option(
         help="Jev model; defaults to jev-1.13.0 or the config value.",
         rich_help_panel="Input & guidance",
+    ),
+]
+BatchSize = Annotated[
+    str,
+    typer.Option(
+        help="1 keeps per-entry requests (default); auto chooses economical batches up to 64 entries; N > 1 forces shared guidance with at most N entries. Token limits may reduce batch size. Shared guidance changes the prompt layout and can change scores.",
+        rich_help_panel="Batching",
+    ),
+]
+BatchTokens = Annotated[
+    int,
+    typer.Option(
+        min=1,
+        max=64000,
+        help="Estimated budget for shared-guidance requests; state plus largest question is limited to half this budget. Per-entry requests are sent whole until Jev rejects their size.",
+        rich_help_panel="Batching",
     ),
 ]
 Fields = Annotated[
@@ -172,6 +189,8 @@ class RunOptions:
     guidance_file: Path | None = None
     exemplars: Path | None = None
     model: str | None = None
+    batch_size: str = DEFAULT_BATCH_SIZE
+    batch_tokens: int = DEFAULT_BATCH_TOKENS
     fields: list[str] | None = None
     optional_fields: list[str] | None = None
     relaxed: bool = False
@@ -203,6 +222,8 @@ def preview_command(
     guidance_file: GuidanceFile = None,
     exemplars: Exemplars = None,
     model: Model = None,
+    batch_size: BatchSize = DEFAULT_BATCH_SIZE,
+    batch_tokens: BatchTokens = DEFAULT_BATCH_TOKENS,
     field: Fields = None,
     optional_field: OptionalFields = None,
     relaxed: Relaxed = False,
@@ -226,6 +247,8 @@ def preview_command(
                 guidance_file=guidance_file,
                 exemplars=exemplars,
                 model=model,
+                batch_size=batch_size,
+                batch_tokens=batch_tokens,
                 fields=field,
                 optional_fields=optional_field,
                 relaxed=relaxed,
@@ -248,6 +271,8 @@ def scan_command(
     guidance_file: GuidanceFile = None,
     exemplars: Exemplars = None,
     model: Model = None,
+    batch_size: BatchSize = DEFAULT_BATCH_SIZE,
+    batch_tokens: BatchTokens = DEFAULT_BATCH_TOKENS,
     field: Fields = None,
     optional_field: OptionalFields = None,
     relaxed: Relaxed = False,
@@ -364,6 +389,8 @@ def scan_command(
                 guidance_file=guidance_file,
                 exemplars=exemplars,
                 model=model,
+                batch_size=batch_size,
+                batch_tokens=batch_tokens,
                 fields=field,
                 optional_fields=optional_field,
                 relaxed=relaxed,
@@ -573,20 +600,23 @@ def _same_file(left: Path, right: Path) -> bool:
 
 def _run(args: RunOptions) -> int:
     count = cached = warnings = emitted = 0
+    stats = ScanStats()
     try:
+        # Validate before opening/truncating output; scan/preview validate lazily
+        # and also serve Python callers without the CLI's argument checks.
+        BatchOptions(args.batch_size, args.batch_tokens)
         if args.sort_score and args.sort_confidence:
             raise ValueError("Use either --sort-score or --sort-confidence, not both")
         if args.order_by is not None and (args.sort_score or args.sort_confidence):
             raise ValueError("Use --order-by or a sort shortcut, not both")
-        if args.guidance is not None and args.guidance_file is not None:
-            raise ValueError(
-                "Use either --guidance TEXT or --guidance-file PATH, not both"
-            )
         config = load_config(args.config) if args.config else Config()
+        guidance_parts = []
+        if args.guidance_file is not None:
+            guidance_parts.append(args.guidance_file.read_text(encoding="utf-8"))
         if args.guidance is not None:
-            config.guidance = args.guidance
-        elif args.guidance_file is not None:
-            config.guidance = args.guidance_file.read_text(encoding="utf-8")
+            guidance_parts.append(args.guidance)
+        if guidance_parts:
+            config.guidance = "\n\n".join(guidance_parts)
         if args.exemplars:
             config.exemplars = json.loads(args.exemplars.read_text(encoding="utf-8"))
         if args.model:
@@ -662,7 +692,12 @@ def _run(args: RunOptions) -> int:
                     args.output.open("w", encoding="utf-8", newline="")
                 )
             if args.command == "preview":
-                for item in preview(limited, config):
+                for item in preview(
+                    limited,
+                    config,
+                    batch_size=args.batch_size,
+                    batch_tokens=args.batch_tokens,
+                ):
                     print(json_text(item), file=output)
                 selection.verify()
                 if report := selection.report():
@@ -675,6 +710,9 @@ def _run(args: RunOptions) -> int:
                         config,
                         cache=None if args.no_cache else args.cache,
                         refresh=args.refresh,
+                        batch_size=args.batch_size,
+                        batch_tokens=args.batch_tokens,
+                        stats=stats,
                     )
                 )
             )
@@ -772,7 +810,11 @@ def _run(args: RunOptions) -> int:
                 print("[]", file=output)
         print(
             f"Assessed {count} entries ({cached} cached); {warnings} warnings; "
-            f"emitted {emitted} {args.rows}." + selection.report(),
+            f"emitted {emitted} {args.rows}. "
+            f"{stats.api_calls} API calls; {stats.input_tokens} input tokens, "
+            f"{stats.output_tokens} output tokens "
+            f"({stats.estimated_tokens} estimated input tokens for successful requests)."
+            + selection.report(),
             file=sys.stderr,
         )
         return 0

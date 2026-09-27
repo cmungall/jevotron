@@ -606,9 +606,37 @@ def test_inline_and_file_guidance_share_request_identity(input_file, tmp_path, c
     assert inline["request_hash"] == document["request_hash"]
 
 
-def test_guidance_overrides_config_and_rejects_ambiguous_input(
-    input_file, tmp_path, capsys
-):
+def test_cli_batch_preview_and_scan(input_file, tmp_path, fake, monkeypatch, capsys):
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    args = [str(input_file), "--batch-size", "2", "--batch-tokens", "4000"]
+    assert main(["preview", *args]) == 0
+    previews = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert len(previews) == 2
+    assert [len(p["entries"]) for p in previews] == [2, 1]
+    assert all(p["estimated_tokens"] <= 4000 for p in previews)
+    assert main(["scan", *args, "--cache", str(tmp_path / "cache.db")]) == 0
+    output = capsys.readouterr()
+    assert len(output.out.splitlines()) == 3
+    assert fake.requests == [p["request"] for p in previews]
+    assert "2 API calls; 100 input tokens" in output.err
+    assert main(["scan", *args, "--cache", str(tmp_path / "cache.db")]) == 0
+    assert "0 API calls; 0 input tokens" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("command", ["preview", "scan"])
+def test_invalid_batch_size_fails_before_output(input_file, capsys, tmp_path, command):
+    target = tmp_path / "report.jsonl"
+    target.write_text("Keep existing report")
+    assert (
+        main([command, str(input_file), "--batch-size", "invalid", "-o", str(target)])
+        == 1
+    )
+    output = capsys.readouterr()
+    assert not output.out and "batch-size" in output.err
+    assert target.read_text() == "Keep existing report"
+
+
+def test_guidance_overrides_config(input_file, tmp_path, capsys):
     config = tmp_path / "config.py"
     config.write_text(
         'from jevotron import Config\nconfig = Config(guidance="original")\n'
@@ -632,22 +660,64 @@ def test_guidance_overrides_config_and_rejects_ambiguous_input(
         json.loads(capsys.readouterr().out)["request"]["state"]["guidance"]
         == "rules.md"
     )
+
+
+@pytest.mark.parametrize("inline", [[], ["--guidance", "text"]])
+def test_missing_guidance_file_fails_even_with_inline_guidance(
+    input_file, tmp_path, capsys, inline
+):
+    missing = tmp_path / "missing.md"
     assert (
         main(
             [
                 "preview",
                 str(input_file),
-                "--guidance",
-                "text",
+                *inline,
                 "--guidance-file",
-                "missing.md",
+                str(missing),
             ]
         )
         == 1
     )
-    assert "not both" in capsys.readouterr().err
-    assert main(["preview", str(input_file), "--guidance-file", "missing.md"]) == 1
-    assert "missing.md" in capsys.readouterr().err
+    output = capsys.readouterr()
+    assert not output.out
+    assert "missing.md" in output.err
+
+
+@pytest.mark.parametrize("file_first", [True, False])
+@pytest.mark.parametrize("document,inline", [("Règles.\n", "Focus here."), ("", "")])
+def test_combined_guidance_preview_scan_and_cache(
+    input_file, tmp_path, fake, monkeypatch, capsys, file_first, document, inline
+):
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    guidance = tmp_path / "rules.md"
+    guidance.write_text(document, encoding="utf-8")
+    config = tmp_path / "config.py"
+    config.write_text(
+        'from jevotron import Config\nconfig = Config(guidance="original")\n'
+    )
+    file_option = ["--guidance-file", str(guidance)]
+    inline_option = ["--guidance", inline]
+    options = file_option + inline_option if file_first else inline_option + file_option
+    args = [str(input_file), "--config", str(config), "--limit", "1"]
+    combined = document + "\n\n" + inline
+
+    assert main(["preview", *args, *options]) == 0
+    preview = json.loads(capsys.readouterr().out)
+    assert preview["request"]["state"]["guidance"] == combined
+
+    cache = ["--cache", str(tmp_path / "cache.db")]
+    assert main(["scan", *args, *options, *cache]) == 0
+    scanned = json.loads(capsys.readouterr().out)
+    assert fake.requests == [preview["request"]]
+    assert scanned["request_hash"] == preview["request_hash"]
+    assert not scanned["cached"]
+
+    assert main(["scan", *args, "--guidance", combined, *cache]) == 0
+    cached = json.loads(capsys.readouterr().out)
+    assert cached["cached"]
+    assert cached["request_hash"] == scanned["request_hash"]
+    assert len(fake.requests) == 1
 
 
 def test_guidance_file_is_protected_from_output_overwrite(input_file, tmp_path, capsys):
