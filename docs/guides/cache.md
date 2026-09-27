@@ -12,6 +12,9 @@ Only changed requests need new API calls. Entries can move within a file or
 appear under a different filename and still reuse their saved assessments.
 The stderr summary reports how many entries were cached.
 
+Use [dataset comparison](compare.md) to match versions by stable ID, report
+new/resolved/persistent field warnings, and gate CI on new warnings only.
+
 ## Share a cache between directories
 
 ```sh

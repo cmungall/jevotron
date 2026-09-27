@@ -1,0 +1,49 @@
+name: Offline airport comparison
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+      - name: Seed explicitly synthetic cache
+        run: uv run python examples/comparison/seed_cache.py .jevotron/fixture.sqlite3
+      - name: Verify the clean control
+        run: |
+          uv run jt compare examples/airports/baseline.csv examples/airports/baseline.csv \
+            --id-column ident --field /iso_country --model jev-offline-fixture \
+            --guidance-file examples/airports/guidance.md \
+            --cache .jevotron/fixture.sqlite3 --fail-on new-warning -o clean.jsonl
+      - name: Verify two known country regressions
+        run: |
+          set +e
+          uv run jt compare examples/airports/baseline.csv examples/airports/spiked.csv \
+            --id-column ident --field /iso_country --model jev-offline-fixture \
+            --guidance-file examples/airports/guidance.md \
+            --cache .jevotron/fixture.sqlite3 --fail-on new-warning \
+            -o changes.jsonl --markdown changes.md
+          status=$?
+          set -e
+          test "$status" -eq 3
+          uv run python - <<'PY'
+          import json
+          from pathlib import Path
+          rows = [json.loads(line) for line in Path("changes.jsonl").read_text().splitlines()]
+          assert rows[0]["complete"] and rows[0]["policy_violated"]
+          assert rows[0]["summary"]["entries"] == {"added": 0, "removed": 0, "changed": 2, "unchanged": 6}
+          warnings = [(row["id"], field["path"]) for row in rows[1:] for field in row["fields"] if field["warning"] == "new"]
+          assert warnings == [("EGLL", "/iso_country"), ("KJFK", "/iso_country")]
+          PY
+          cat changes.md >> "$GITHUB_STEP_SUMMARY"
