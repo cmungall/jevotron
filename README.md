@@ -11,6 +11,10 @@ Preview the input, scan every entry, and export a focused review queue. Each
 chunk is independent and sees the same optional guidance and exemplars.
 SQLite caching reuses assessments across file versions.
 
+For large guidance documents, opt into token-aware packing with
+`--batch-size auto`. [Batching controls and limits](docs/guides/guidance.md#batching-and-large-guidance-files)
+explain when it saves tokens and how to compare scores with per-entry requests.
+
 **Example: classify agent traces.** In a 24-trace public-data pilot, jt matched
 130 of 163 published step-quality labels (79.8%). Harmful-step precision was
 89.7%, with 70.3% recall. This was a small, length-filtered sample.

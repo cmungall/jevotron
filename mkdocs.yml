@@ -73,6 +73,7 @@ nav:
       - Agent traces · JSONL: examples/agent-traces.md
   - Analysis:
       - Agent trace pilot: analysis/agent-traces/index.md
+      - Batching benchmark: analysis/batching.md
   - Reference:
       - CLI commands: reference/cli.md
       - File formats: reference/formats.md

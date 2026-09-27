@@ -103,8 +103,9 @@ in-memory DuckDB database. Scans without SQL options retain ordinary streaming.
 ## Read the scores
 
 Each field receives a `NORMAL` / `ANOMALY` classification, the full label
-probability distribution, and Jev's confidence. All field questions for an entry
-are batched into one request.
+probability distribution, and Jev's confidence. Field questions are packed into
+requests according to the [batching options](guidance.md#batching-and-large-guidance-files).
+One request may cover several entries, and a large entry may span several requests.
 
 | Result | Meaning |
 | --- | --- |
@@ -191,7 +192,10 @@ exemplars, and assessment cache. Both preview and scan reject symlink or hardlin
 aliases of those files before opening the output.
 
 `assessed_at` is the original assessment timestamp. `usage` on cached results
-describes the original call and does not represent new token usage.
+describes the original assessment and does not represent new token usage.
+For shared or split assessments, `usage.batch_request_hashes` references actual
+requests in the cache's `batch_requests` table. Use the stderr scan summary for
+new request-level token totals; it avoids counting shared guidance repeatedly.
 
 ## Streaming and incomplete runs
 

@@ -1,0 +1,1968 @@
+{
+  "live": true,
+  "note": "Long guidance repeats identical rules 20 times; public examples only.",
+  "cases": [
+    {
+      "dataset": "units",
+      "guidance_repeats": 1,
+      "modes": [
+        {
+          "batch_size": 1,
+          "planned_requests": 3,
+          "estimated_input_tokens": 3355,
+          "layouts": [
+            "entry-v1"
+          ],
+          "seconds": 0.517,
+          "api_calls": 3,
+          "input_tokens": 2473,
+          "output_tokens": 243,
+          "fields": 7,
+          "label_changes": 0,
+          "max_probability_delta": 0.0,
+          "max_confidence_delta": 0.0,
+          "assessments": [
+            {
+              "id": "DEMO:0001",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:5",
+              "label": "NORMAL",
+              "score": 0.28,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of length.\" []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.72,
+                    "ANOMALY": 0.28
+                  },
+                  "confidence": 0.44,
+                  "score": 0.28
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"meter\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.01,
+                    "NORMAL": 0.99
+                  },
+                  "confidence": 0.98,
+                  "score": 0.01
+                },
+                {
+                  "path": "/synonym/1",
+                  "value": "\"m\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.01,
+                    "NORMAL": 0.99
+                  },
+                  "confidence": 0.98,
+                  "score": 0.01
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.059619+00:00",
+              "request_hash": "d8c520f59e5ef333b31d295a50c07fcce7df9311e27767ca3e059769aced0fa9",
+              "cached": false,
+              "usage": {
+                "input_tokens": 952,
+                "output_tokens": 102
+              }
+            },
+            {
+              "id": "DEMO:0002",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:12",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time equal to sixty seconds.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.0,
+                    "ANOMALY": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"kg\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.82,
+                    "ANOMALY": 0.18
+                  },
+                  "confidence": 0.64,
+                  "score": 0.18
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.189670+00:00",
+              "request_hash": "f9303a9e43bff2a66a8590703038cbaac7bcf109c417b1708cb568222b6611ca",
+              "cached": false,
+              "usage": {
+                "input_tokens": 766,
+                "output_tokens": 72
+              }
+            },
+            {
+              "id": "DEMO:0003",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:18",
+              "label": "NORMAL",
+              "score": 0.3,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time.\" []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.7,
+                    "ANOMALY": 0.3
+                  },
+                  "confidence": 0.39,
+                  "score": 0.3
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"s\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.78,
+                    "ANOMALY": 0.22
+                  },
+                  "confidence": 0.56,
+                  "score": 0.22
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.306954+00:00",
+              "request_hash": "706f693d17351ac4c5e1e89dac97cbf2b7e2127d35c8336a674fbc618e9c5773",
+              "cached": false,
+              "usage": {
+                "input_tokens": 755,
+                "output_tokens": 69
+              }
+            }
+          ]
+        },
+        {
+          "batch_size": 8,
+          "planned_requests": 1,
+          "estimated_input_tokens": 3181,
+          "layouts": [
+            "shared-v1"
+          ],
+          "seconds": 0.246,
+          "api_calls": 1,
+          "input_tokens": 2127,
+          "output_tokens": 264,
+          "fields": 7,
+          "label_changes": 2,
+          "max_probability_delta": 0.32999999999999996,
+          "max_confidence_delta": 0.39,
+          "assessments": [
+            {
+              "id": "DEMO:0001",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:5",
+              "label": "ANOMALY",
+              "score": 0.61,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of length.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "ANOMALY": 0.61,
+                    "NORMAL": 0.39
+                  },
+                  "confidence": 0.21,
+                  "score": 0.61
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"meter\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.07,
+                    "NORMAL": 0.93
+                  },
+                  "confidence": 0.86,
+                  "score": 0.07
+                },
+                {
+                  "path": "/synonym/1",
+                  "value": "\"m\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.07,
+                    "NORMAL": 0.93
+                  },
+                  "confidence": 0.86,
+                  "score": 0.07
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.554173+00:00",
+              "request_hash": "ce6352a4ef3116c74a91de5ab46cdd897c37fe86a798fb99aecc3fb52552ddac",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "b01f585b2872ab3aa19a450bb18a097f91be445ae93cce87f215b4850b0e19c2"
+                ]
+              }
+            },
+            {
+              "id": "DEMO:0002",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:12",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time equal to sixty seconds.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "ANOMALY": 1.0,
+                    "NORMAL": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"kg\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.28,
+                    "NORMAL": 0.72
+                  },
+                  "confidence": 0.44,
+                  "score": 0.28
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.554173+00:00",
+              "request_hash": "c624f733d207bcb45b1b048ecf2cd777b385cddcc671a22591a368f450afdb21",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "b01f585b2872ab3aa19a450bb18a097f91be445ae93cce87f215b4850b0e19c2"
+                ]
+              }
+            },
+            {
+              "id": "DEMO:0003",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:18",
+              "label": "ANOMALY",
+              "score": 0.5,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "ANOMALY": 0.5,
+                    "NORMAL": 0.5
+                  },
+                  "confidence": 0.0,
+                  "score": 0.5
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"s\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.09,
+                    "NORMAL": 0.91
+                  },
+                  "confidence": 0.82,
+                  "score": 0.09
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.554173+00:00",
+              "request_hash": "91a34b8ac05dd13c64a5d7966b950982beecf8d21f4fb665a9894170b9d4fa78",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "b01f585b2872ab3aa19a450bb18a097f91be445ae93cce87f215b4850b0e19c2"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "batch_size": "auto",
+          "planned_requests": 3,
+          "estimated_input_tokens": 3355,
+          "layouts": [
+            "entry-v1"
+          ],
+          "seconds": 0.413,
+          "api_calls": 3,
+          "input_tokens": 2473,
+          "output_tokens": 243,
+          "fields": 7,
+          "label_changes": 0,
+          "max_probability_delta": 0.030000000000000027,
+          "max_confidence_delta": 0.06000000000000005,
+          "assessments": [
+            {
+              "id": "DEMO:0001",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:5",
+              "label": "NORMAL",
+              "score": 0.26,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of length.\" []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.74,
+                    "ANOMALY": 0.26
+                  },
+                  "confidence": 0.49,
+                  "score": 0.26
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"meter\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.99,
+                    "ANOMALY": 0.01
+                  },
+                  "confidence": 0.98,
+                  "score": 0.01
+                },
+                {
+                  "path": "/synonym/1",
+                  "value": "\"m\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.99,
+                    "ANOMALY": 0.01
+                  },
+                  "confidence": 0.98,
+                  "score": 0.01
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.747229+00:00",
+              "request_hash": "d8c520f59e5ef333b31d295a50c07fcce7df9311e27767ca3e059769aced0fa9",
+              "cached": false,
+              "usage": {
+                "input_tokens": 952,
+                "output_tokens": 102
+              }
+            },
+            {
+              "id": "DEMO:0002",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:12",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time equal to sixty seconds.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.0,
+                    "ANOMALY": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"kg\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.79,
+                    "ANOMALY": 0.21
+                  },
+                  "confidence": 0.58,
+                  "score": 0.21
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.822751+00:00",
+              "request_hash": "f9303a9e43bff2a66a8590703038cbaac7bcf109c417b1708cb568222b6611ca",
+              "cached": false,
+              "usage": {
+                "input_tokens": 766,
+                "output_tokens": 72
+              }
+            },
+            {
+              "id": "DEMO:0003",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:18",
+              "label": "NORMAL",
+              "score": 0.33,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time.\" []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.67,
+                    "ANOMALY": 0.33
+                  },
+                  "confidence": 0.34,
+                  "score": 0.33
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"s\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.79,
+                    "ANOMALY": 0.21
+                  },
+                  "confidence": 0.58,
+                  "score": 0.21
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:30.967590+00:00",
+              "request_hash": "706f693d17351ac4c5e1e89dac97cbf2b7e2127d35c8336a674fbc618e9c5773",
+              "cached": false,
+              "usage": {
+                "input_tokens": 755,
+                "output_tokens": 69
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dataset": "units",
+      "guidance_repeats": 20,
+      "modes": [
+        {
+          "batch_size": 1,
+          "planned_requests": 3,
+          "estimated_input_tokens": 9226,
+          "layouts": [
+            "entry-v1"
+          ],
+          "seconds": 0.313,
+          "api_calls": 3,
+          "input_tokens": 4639,
+          "output_tokens": 243,
+          "fields": 7,
+          "label_changes": 0,
+          "max_probability_delta": 0.0,
+          "max_confidence_delta": 0.0,
+          "assessments": [
+            {
+              "id": "DEMO:0001",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:5",
+              "label": "NORMAL",
+              "score": 0.23,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of length.\" []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.77,
+                    "ANOMALY": 0.23
+                  },
+                  "confidence": 0.54,
+                  "score": 0.23
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"meter\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 0.99,
+                  "score": 0.0
+                },
+                {
+                  "path": "/synonym/1",
+                  "value": "\"m\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 0.99,
+                  "score": 0.0
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.088953+00:00",
+              "request_hash": "8c8d113b5937affcc63f5aa4d86bcc9aa61697016355e226d80638f8482d872e",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1674,
+                "output_tokens": 102
+              }
+            },
+            {
+              "id": "DEMO:0002",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:12",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time equal to sixty seconds.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "ANOMALY": 1.0,
+                    "NORMAL": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"kg\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.11,
+                    "NORMAL": 0.89
+                  },
+                  "confidence": 0.77,
+                  "score": 0.11
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.201144+00:00",
+              "request_hash": "1b58fcca3f856dc9a269e54bdd3a6aa7ef874b21d950a8903a2b5ffda39e47b8",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1488,
+                "output_tokens": 72
+              }
+            },
+            {
+              "id": "DEMO:0003",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:18",
+              "label": "NORMAL",
+              "score": 0.34,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time.\" []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.66,
+                    "ANOMALY": 0.34
+                  },
+                  "confidence": 0.32,
+                  "score": 0.34
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"s\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.7,
+                    "ANOMALY": 0.3
+                  },
+                  "confidence": 0.4,
+                  "score": 0.3
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.281614+00:00",
+              "request_hash": "308a2de0c576cfe72b34ad8fc147870280af0d46532e3504aa3cc70fb074c806",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1477,
+                "output_tokens": 69
+              }
+            }
+          ]
+        },
+        {
+          "batch_size": 8,
+          "planned_requests": 1,
+          "estimated_input_tokens": 5138,
+          "layouts": [
+            "shared-v1"
+          ],
+          "seconds": 0.158,
+          "api_calls": 1,
+          "input_tokens": 2849,
+          "output_tokens": 264,
+          "fields": 7,
+          "label_changes": 2,
+          "max_probability_delta": 0.53,
+          "max_confidence_delta": 0.5700000000000001,
+          "assessments": [
+            {
+              "id": "DEMO:0001",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:5",
+              "label": "ANOMALY",
+              "score": 0.76,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of length.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.24,
+                    "ANOMALY": 0.76
+                  },
+                  "confidence": 0.51,
+                  "score": 0.76
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"meter\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.93,
+                    "ANOMALY": 0.07
+                  },
+                  "confidence": 0.86,
+                  "score": 0.07
+                },
+                {
+                  "path": "/synonym/1",
+                  "value": "\"m\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.93,
+                    "ANOMALY": 0.07
+                  },
+                  "confidence": 0.87,
+                  "score": 0.07
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.441136+00:00",
+              "request_hash": "edf1665c3a8e827ca63cb46db0297c4f28de760407035641e7f1f154b9fd485a",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "9c1771d1da89510e671c76073f982fcaeb0e8f80f31d6a682d90e99982770d2c"
+                ]
+              }
+            },
+            {
+              "id": "DEMO:0002",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:12",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time equal to sixty seconds.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.0,
+                    "ANOMALY": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"kg\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.6,
+                    "ANOMALY": 0.4
+                  },
+                  "confidence": 0.2,
+                  "score": 0.4
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.441136+00:00",
+              "request_hash": "c2940e3ad517187f46896acf30f6c40a1bd290f35558506212a8f8954a476ec1",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "9c1771d1da89510e671c76073f982fcaeb0e8f80f31d6a682d90e99982770d2c"
+                ]
+              }
+            },
+            {
+              "id": "DEMO:0003",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:18",
+              "label": "ANOMALY",
+              "score": 0.69,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.31,
+                    "ANOMALY": 0.69
+                  },
+                  "confidence": 0.38,
+                  "score": 0.69
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"s\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.81,
+                    "ANOMALY": 0.19
+                  },
+                  "confidence": 0.63,
+                  "score": 0.19
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.441136+00:00",
+              "request_hash": "0da0f0d6de773f042bc2d2b3071c37e93287cb9c43e790ff9f96321ea036cd14",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "9c1771d1da89510e671c76073f982fcaeb0e8f80f31d6a682d90e99982770d2c"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "batch_size": "auto",
+          "planned_requests": 1,
+          "estimated_input_tokens": 5138,
+          "layouts": [
+            "shared-v1"
+          ],
+          "seconds": 0.16,
+          "api_calls": 1,
+          "input_tokens": 2849,
+          "output_tokens": 264,
+          "fields": 7,
+          "label_changes": 2,
+          "max_probability_delta": 0.5,
+          "max_confidence_delta": 0.53,
+          "assessments": [
+            {
+              "id": "DEMO:0001",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:5",
+              "label": "ANOMALY",
+              "score": 0.73,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of length.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.27,
+                    "ANOMALY": 0.73
+                  },
+                  "confidence": 0.46,
+                  "score": 0.73
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"meter\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.92,
+                    "ANOMALY": 0.08
+                  },
+                  "confidence": 0.84,
+                  "score": 0.08
+                },
+                {
+                  "path": "/synonym/1",
+                  "value": "\"m\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.93,
+                    "ANOMALY": 0.07
+                  },
+                  "confidence": 0.86,
+                  "score": 0.07
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.601847+00:00",
+              "request_hash": "edf1665c3a8e827ca63cb46db0297c4f28de760407035641e7f1f154b9fd485a",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "9c1771d1da89510e671c76073f982fcaeb0e8f80f31d6a682d90e99982770d2c"
+                ]
+              }
+            },
+            {
+              "id": "DEMO:0002",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:12",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time equal to sixty seconds.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.0,
+                    "ANOMALY": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"kg\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.62,
+                    "ANOMALY": 0.38
+                  },
+                  "confidence": 0.24,
+                  "score": 0.38
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.601847+00:00",
+              "request_hash": "c2940e3ad517187f46896acf30f6c40a1bd290f35558506212a8f8954a476ec1",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "9c1771d1da89510e671c76073f982fcaeb0e8f80f31d6a682d90e99982770d2c"
+                ]
+              }
+            },
+            {
+              "id": "DEMO:0003",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/units/units.obo:18",
+              "label": "ANOMALY",
+              "score": 0.65,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/def/0",
+                  "value": "\"An SI unit of time.\" []",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.35,
+                    "ANOMALY": 0.65
+                  },
+                  "confidence": 0.3,
+                  "score": 0.65
+                },
+                {
+                  "path": "/synonym/0",
+                  "value": "\"s\" EXACT []",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.82,
+                    "ANOMALY": 0.18
+                  },
+                  "confidence": 0.63,
+                  "score": 0.18
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.601847+00:00",
+              "request_hash": "0da0f0d6de773f042bc2d2b3071c37e93287cb9c43e790ff9f96321ea036cd14",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "9c1771d1da89510e671c76073f982fcaeb0e8f80f31d6a682d90e99982770d2c"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dataset": "airports",
+      "guidance_repeats": 1,
+      "modes": [
+        {
+          "batch_size": 1,
+          "planned_requests": 3,
+          "estimated_input_tokens": 4613,
+          "layouts": [
+            "entry-v1"
+          ],
+          "seconds": 0.323,
+          "api_calls": 3,
+          "input_tokens": 3110,
+          "output_tokens": 309,
+          "fields": 9,
+          "label_changes": 0,
+          "max_probability_delta": 0.0,
+          "max_confidence_delta": 0.0,
+          "assessments": [
+            {
+              "id": "EDDF",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:1",
+              "label": "NORMAL",
+              "score": 0.0,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "DE",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "50.026706",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 0.99,
+                  "score": 0.0
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "8.55835",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.727331+00:00",
+              "request_hash": "517619323a16c7153c1d5fd590afe059cc7ed84febf56e09922ba7c5cc748e3f",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1033,
+                "output_tokens": 102
+              }
+            },
+            {
+              "id": "EGLL",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:2",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "JP",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.0,
+                    "ANOMALY": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "51.470748",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.98,
+                    "ANOMALY": 0.02
+                  },
+                  "confidence": 0.96,
+                  "score": 0.02
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "-0.459909",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.96,
+                    "ANOMALY": 0.04
+                  },
+                  "confidence": 0.93,
+                  "score": 0.04
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.812099+00:00",
+              "request_hash": "023bf01041ac8b66fda96086fa06b20e86b0c8eed62f1ddcc11155640a81c70c",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1034,
+                "output_tokens": 105
+              }
+            },
+            {
+              "id": "FAOR",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:3",
+              "label": "NORMAL",
+              "score": 0.0,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "ZA",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "-26.140081",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "28.246801",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:31.930129+00:00",
+              "request_hash": "f158d250e0e1c26767e907ff9bcc2f3b4cb59caa2ce9c285ceb8052cb5885ea6",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1043,
+                "output_tokens": 102
+              }
+            }
+          ]
+        },
+        {
+          "batch_size": 8,
+          "planned_requests": 1,
+          "estimated_input_tokens": 4327,
+          "layouts": [
+            "shared-v1"
+          ],
+          "seconds": 0.136,
+          "api_calls": 1,
+          "input_tokens": 2846,
+          "output_tokens": 333,
+          "fields": 9,
+          "label_changes": 1,
+          "max_probability_delta": 0.46,
+          "max_confidence_delta": 0.93,
+          "assessments": [
+            {
+              "id": "EDDF",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:1",
+              "label": "NORMAL",
+              "score": 0.05,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "DE",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "50.026706",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.95,
+                    "ANOMALY": 0.05
+                  },
+                  "confidence": 0.91,
+                  "score": 0.05
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "8.55835",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.96,
+                    "ANOMALY": 0.04
+                  },
+                  "confidence": 0.92,
+                  "score": 0.04
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.066810+00:00",
+              "request_hash": "edeb1208d4cb10066ce8d538790c920eecfaf335c8f7a0367de75e393553c09b",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "e526c49be029acdd9c87127923a412a81fcd6148508c92897516e5ad817941dd"
+                ]
+              }
+            },
+            {
+              "id": "EGLL",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:2",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "JP",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.0,
+                    "ANOMALY": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "51.470748",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.55,
+                    "ANOMALY": 0.45
+                  },
+                  "confidence": 0.11,
+                  "score": 0.45
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "-0.459909",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.5,
+                    "ANOMALY": 0.5
+                  },
+                  "confidence": 0.0,
+                  "score": 0.5
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.066810+00:00",
+              "request_hash": "f150fd9a86fd12c131751e152c31ba5a8e75b439d4b1d2f8b8fbcda38029a830",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "e526c49be029acdd9c87127923a412a81fcd6148508c92897516e5ad817941dd"
+                ]
+              }
+            },
+            {
+              "id": "FAOR",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:3",
+              "label": "NORMAL",
+              "score": 0.02,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "ZA",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 0.99,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "-26.140081",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.98,
+                    "ANOMALY": 0.02
+                  },
+                  "confidence": 0.97,
+                  "score": 0.02
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "28.246801",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.98,
+                    "ANOMALY": 0.02
+                  },
+                  "confidence": 0.97,
+                  "score": 0.02
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.066810+00:00",
+              "request_hash": "ef7a3dd2e3b131a84ac5fa6bbaf554a3d37c6ab9afaf892b16bf607c04b7aad4",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "e526c49be029acdd9c87127923a412a81fcd6148508c92897516e5ad817941dd"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "batch_size": "auto",
+          "planned_requests": 3,
+          "estimated_input_tokens": 4613,
+          "layouts": [
+            "entry-v1"
+          ],
+          "seconds": 0.329,
+          "api_calls": 3,
+          "input_tokens": 3110,
+          "output_tokens": 309,
+          "fields": 9,
+          "label_changes": 0,
+          "max_probability_delta": 0.010000000000000009,
+          "max_confidence_delta": 0.010000000000000009,
+          "assessments": [
+            {
+              "id": "EDDF",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:1",
+              "label": "NORMAL",
+              "score": 0.0,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "DE",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "50.026706",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 0.99,
+                  "score": 0.0
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "8.55835",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.198826+00:00",
+              "request_hash": "517619323a16c7153c1d5fd590afe059cc7ed84febf56e09922ba7c5cc748e3f",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1033,
+                "output_tokens": 102
+              }
+            },
+            {
+              "id": "EGLL",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:2",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "JP",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.0,
+                    "ANOMALY": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "51.470748",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.99,
+                    "ANOMALY": 0.01
+                  },
+                  "confidence": 0.97,
+                  "score": 0.01
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "-0.459909",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.96,
+                    "ANOMALY": 0.04
+                  },
+                  "confidence": 0.93,
+                  "score": 0.04
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.315885+00:00",
+              "request_hash": "023bf01041ac8b66fda96086fa06b20e86b0c8eed62f1ddcc11155640a81c70c",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1034,
+                "output_tokens": 105
+              }
+            },
+            {
+              "id": "FAOR",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:3",
+              "label": "NORMAL",
+              "score": 0.0,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "ZA",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "-26.140081",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "28.246801",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.396527+00:00",
+              "request_hash": "f158d250e0e1c26767e907ff9bcc2f3b4cb59caa2ce9c285ceb8052cb5885ea6",
+              "cached": false,
+              "usage": {
+                "input_tokens": 1043,
+                "output_tokens": 102
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dataset": "airports",
+      "guidance_repeats": 20,
+      "modes": [
+        {
+          "batch_size": 1,
+          "planned_requests": 3,
+          "estimated_input_tokens": 20459,
+          "layouts": [
+            "entry-v1"
+          ],
+          "seconds": 0.313,
+          "api_calls": 3,
+          "input_tokens": 9722,
+          "output_tokens": 309,
+          "fields": 9,
+          "label_changes": 0,
+          "max_probability_delta": 0.0,
+          "max_confidence_delta": 0.0,
+          "assessments": [
+            {
+              "id": "EDDF",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:1",
+              "label": "NORMAL",
+              "score": 0.0,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "DE",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "50.026706",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 0.99,
+                  "score": 0.0
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "8.55835",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.525666+00:00",
+              "request_hash": "7639d60ffba69cfbfe41af89fec7f5f1e496143540f3bfedf346e0e8dae8e2b2",
+              "cached": false,
+              "usage": {
+                "input_tokens": 3237,
+                "output_tokens": 102
+              }
+            },
+            {
+              "id": "EGLL",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:2",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "JP",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "ANOMALY": 1.0,
+                    "NORMAL": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "51.470748",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.05,
+                    "NORMAL": 0.95
+                  },
+                  "confidence": 0.91,
+                  "score": 0.05
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "-0.459909",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.04,
+                    "NORMAL": 0.96
+                  },
+                  "confidence": 0.93,
+                  "score": 0.04
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.622808+00:00",
+              "request_hash": "f1f5085fed93c7ffe647e189723f64e7cbda7a91729e07c3cfa0e460dc3826a0",
+              "cached": false,
+              "usage": {
+                "input_tokens": 3238,
+                "output_tokens": 105
+              }
+            },
+            {
+              "id": "FAOR",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:3",
+              "label": "NORMAL",
+              "score": 0.0,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "ZA",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "-26.140081",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "28.246801",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.711205+00:00",
+              "request_hash": "83b664db597f8fbbac7a1fed3e04263cf8d3ba83c600d18f328044178d8329cc",
+              "cached": false,
+              "usage": {
+                "input_tokens": 3247,
+                "output_tokens": 102
+              }
+            }
+          ]
+        },
+        {
+          "batch_size": 8,
+          "planned_requests": 1,
+          "estimated_input_tokens": 9609,
+          "layouts": [
+            "shared-v1"
+          ],
+          "seconds": 0.189,
+          "api_calls": 1,
+          "input_tokens": 5050,
+          "output_tokens": 336,
+          "fields": 9,
+          "label_changes": 2,
+          "max_probability_delta": 0.71,
+          "max_confidence_delta": 0.77,
+          "assessments": [
+            {
+              "id": "EDDF",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:1",
+              "label": "NORMAL",
+              "score": 0.06,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "DE",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "50.026706",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.06,
+                    "NORMAL": 0.94
+                  },
+                  "confidence": 0.89,
+                  "score": 0.06
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "8.55835",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.95,
+                    "ANOMALY": 0.05
+                  },
+                  "confidence": 0.9,
+                  "score": 0.05
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.901892+00:00",
+              "request_hash": "cb9eab773d1f0da0f68dd0ef9468612da347169a886a7191c6e43bf15a1aa88e",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "65a3df1fe776ac0d07be0f57fa0d140a06eae4485325999ac94808074f331643"
+                ]
+              }
+            },
+            {
+              "id": "EGLL",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:2",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "JP",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.0,
+                    "ANOMALY": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "51.470748",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.43,
+                    "ANOMALY": 0.57
+                  },
+                  "confidence": 0.14,
+                  "score": 0.57
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "-0.459909",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "NORMAL": 0.25,
+                    "ANOMALY": 0.75
+                  },
+                  "confidence": 0.5,
+                  "score": 0.75
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.901892+00:00",
+              "request_hash": "3cdaf6de8ec6ba157b708db69c047408d00ea68b53828d189089afb0f7d9a489",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "65a3df1fe776ac0d07be0f57fa0d140a06eae4485325999ac94808074f331643"
+                ]
+              }
+            },
+            {
+              "id": "FAOR",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:3",
+              "label": "NORMAL",
+              "score": 0.02,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "ZA",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 1.0,
+                    "ANOMALY": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "-26.140081",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "NORMAL": 0.98,
+                    "ANOMALY": 0.02
+                  },
+                  "confidence": 0.97,
+                  "score": 0.02
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "28.246801",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.01,
+                    "NORMAL": 0.99
+                  },
+                  "confidence": 0.97,
+                  "score": 0.01
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:32.901892+00:00",
+              "request_hash": "e4c4386e21f15e392c63752bc53a3c3d3def93f5b2ced193d3c55014875f3334",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "65a3df1fe776ac0d07be0f57fa0d140a06eae4485325999ac94808074f331643"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "batch_size": "auto",
+          "planned_requests": 1,
+          "estimated_input_tokens": 9609,
+          "layouts": [
+            "shared-v1"
+          ],
+          "seconds": 0.184,
+          "api_calls": 1,
+          "input_tokens": 5050,
+          "output_tokens": 336,
+          "fields": 9,
+          "label_changes": 2,
+          "max_probability_delta": 0.61,
+          "max_confidence_delta": 0.91,
+          "assessments": [
+            {
+              "id": "EDDF",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:1",
+              "label": "NORMAL",
+              "score": 0.05,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "DE",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "50.026706",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.05,
+                    "NORMAL": 0.95
+                  },
+                  "confidence": 0.89,
+                  "score": 0.05
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "8.55835",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.05,
+                    "NORMAL": 0.95
+                  },
+                  "confidence": 0.9,
+                  "score": 0.05
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:33.088026+00:00",
+              "request_hash": "cb9eab773d1f0da0f68dd0ef9468612da347169a886a7191c6e43bf15a1aa88e",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "65a3df1fe776ac0d07be0f57fa0d140a06eae4485325999ac94808074f331643"
+                ]
+              }
+            },
+            {
+              "id": "EGLL",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:2",
+              "label": "ANOMALY",
+              "score": 1.0,
+              "warning": true,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "JP",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "ANOMALY": 1.0,
+                    "NORMAL": 0.0
+                  },
+                  "confidence": 1.0,
+                  "score": 1.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "51.470748",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "ANOMALY": 0.5,
+                    "NORMAL": 0.5
+                  },
+                  "confidence": 0.0,
+                  "score": 0.5
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "-0.459909",
+                  "label": "ANOMALY",
+                  "probabilities": {
+                    "ANOMALY": 0.65,
+                    "NORMAL": 0.35
+                  },
+                  "confidence": 0.3,
+                  "score": 0.65
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:33.088026+00:00",
+              "request_hash": "3cdaf6de8ec6ba157b708db69c047408d00ea68b53828d189089afb0f7d9a489",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "65a3df1fe776ac0d07be0f57fa0d140a06eae4485325999ac94808074f331643"
+                ]
+              }
+            },
+            {
+              "id": "FAOR",
+              "source": "/Users/cjm/orca/workspaces/jevotron/jt-guidance/examples/airports/spiked.csv:row:3",
+              "label": "NORMAL",
+              "score": 0.02,
+              "warning": false,
+              "fields": [
+                {
+                  "path": "/iso_country",
+                  "value": "ZA",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.0,
+                    "NORMAL": 1.0
+                  },
+                  "confidence": 1.0,
+                  "score": 0.0
+                },
+                {
+                  "path": "/latitude_deg",
+                  "value": "-26.140081",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.01,
+                    "NORMAL": 0.99
+                  },
+                  "confidence": 0.98,
+                  "score": 0.01
+                },
+                {
+                  "path": "/longitude_deg",
+                  "value": "28.246801",
+                  "label": "NORMAL",
+                  "probabilities": {
+                    "ANOMALY": 0.02,
+                    "NORMAL": 0.98
+                  },
+                  "confidence": 0.97,
+                  "score": 0.02
+                }
+              ],
+              "absent": [],
+              "model": "jev-1.13.0",
+              "assessed_at": "2026-09-27T03:31:33.088026+00:00",
+              "request_hash": "e4c4386e21f15e392c63752bc53a3c3d3def93f5b2ced193d3c55014875f3334",
+              "cached": false,
+              "usage": {
+                "batch_request_hashes": [
+                  "65a3df1fe776ac0d07be0f57fa0d140a06eae4485325999ac94808074f331643"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

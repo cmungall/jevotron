@@ -26,6 +26,14 @@ class Cache:
                     assessed_at TEXT NOT NULL
                 )
             """)
+            self.connection.execute("""
+                CREATE TABLE IF NOT EXISTS batch_requests (
+                    request_hash TEXT PRIMARY KEY,
+                    request_json TEXT NOT NULL,
+                    response_json TEXT NOT NULL,
+                    assessed_at TEXT NOT NULL
+                )
+            """)
             self.connection.commit()
         except BaseException:
             self.connection.close()
@@ -67,6 +75,16 @@ class Cache:
 
     def close(self) -> None:
         self.connection.close()
+
+    def put_batch(
+        self, key: str, request: dict, response: dict, assessed_at: str
+    ) -> None:
+        """Store the actual wire request and usage once, separately from entries."""
+        with self.connection:
+            self.connection.execute(
+                "INSERT OR REPLACE INTO batch_requests VALUES (?, ?, ?, ?)",
+                (key, json_text(request), json_text(response), assessed_at),
+            )
 
     def __enter__(self):
         return self
