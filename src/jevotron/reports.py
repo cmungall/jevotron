@@ -125,7 +125,15 @@ class ReportQuery:
                 for key, kind in self.columns.items()
             }
             records.append(
-                {**record, "__ordinal": ordinal, "__payload": json_text(row)}
+                {
+                    **record,
+                    "__ordinal": ordinal,
+                    # Report key order is visible in YAML; canonical request JSON
+                    # sorts keys and would change it only on the SQL path.
+                    "__payload": json.dumps(
+                        row, ensure_ascii=False, allow_nan=False, separators=(",", ":")
+                    ),
+                }
             )
         self.connection.execute(
             f"INSERT INTO report_rows SELECT r.* FROM unnest(?::STRUCT({self.schema})[]) AS t(r)",

@@ -2,6 +2,7 @@ from contextlib import closing
 from dataclasses import replace
 
 import pytest
+import yaml
 
 from jevotron.models import FieldResult, Result
 from jevotron.reports import ReportQuery, report_rows
@@ -52,10 +53,17 @@ def test_entry_and_field_confidence_and_parent_context(assessment):
 
 
 @pytest.mark.parametrize("view", ["entries", "fields"])
-def test_query_round_trip_preserves_heterogeneous_values(assessment, view):
+@pytest.mark.parametrize("order_by", [None, "confidence DESC"])
+def test_query_round_trip_preserves_heterogeneous_values(assessment, view, order_by):
     rows = list(report_rows(assessment, view, 0.5))
-    with closing(ReportQuery(view, "source IS NULL AND NOT cached", None)) as query:
-        assert list(query.select(rows)) == rows
+    with closing(ReportQuery(view, "source IS NULL AND NOT cached", order_by)) as query:
+        selected = list(query.select(rows))
+        assert selected == rows
+        assert [list(row) for row in selected] == [list(row) for row in rows]
+        # Include nested mappings: dict equality alone cannot detect YAML churn.
+        assert "".join(
+            yaml.safe_dump([row], sort_keys=False) for row in selected
+        ) == "".join(yaml.safe_dump([row], sort_keys=False) for row in rows)
 
 
 def test_field_probability_and_nested_value_expressions(assessment):

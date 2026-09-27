@@ -272,6 +272,63 @@ def test_conflicting_sorts_fail_before_inference(input_file, fake, monkeypatch, 
     assert not fake.requests
 
 
+def test_multiclass_anomaly_confidence_differs_from_entry_confidence(
+    tmp_path, fake, monkeypatch, capsys
+):
+    data = tmp_path / "data.csv"
+    data.write_text("id,context,value\na,ok,BAD\nb,ok,BAD\n")
+    config = tmp_path / "config.py"
+    config.write_text(
+        "from jevotron import Config\n"
+        "config = Config(labels=['NORMAL', 'SUSPICIOUS', 'OTHER'], "
+        "anomaly_label='SUSPICIOUS')\n"
+    )
+
+    def evaluate(request):
+        entry_id = request["state"]["entry"]["id"]
+        answers = {}
+        for key, question in request["questions"].items():
+            anomalous = question["instructions"]["field_path"] == "/value"
+            probabilities = (
+                {"NORMAL": 0.3, "SUSPICIOUS": 0.4, "OTHER": 0.3}
+                if anomalous
+                else {"NORMAL": 0.5, "SUSPICIOUS": 0.45, "OTHER": 0.05}
+            )
+            # The anomalous field has lower anomaly probability than context.
+            # The two confidence orderings therefore deliberately disagree.
+            anomaly_confidence, entry_confidence = {"a": (0.9, 0.6), "b": (0.7, 0.95)}[
+                entry_id
+            ]
+            answers[key] = {
+                "type": "choice",
+                "choice": "SUSPICIOUS" if anomalous else "NORMAL",
+                "probabilities": probabilities,
+                "confidence": anomaly_confidence if anomalous else entry_confidence,
+            }
+        return {"model": "test", "answers": answers}
+
+    monkeypatch.setattr(fake, "evaluate", evaluate)
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    args = [
+        "scan",
+        str(data),
+        "--config",
+        str(config),
+        "--id-column",
+        "id",
+        "--no-cache",
+    ]
+    for options, ids in [
+        (["-a", "-s"], ["a", "b"]),
+        (["-a", "--order-by", "confidence DESC"], ["b", "a"]),
+        (["--where", "label = 'SUSPICIOUS'"], []),
+    ]:
+        assert main([*args, *options]) == 0
+        rows = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+        assert [row["id"] for row in rows] == ids
+        assert all(row["label"] == "NORMAL" for row in rows)
+
+
 @pytest.mark.parametrize(
     "options",
     [
