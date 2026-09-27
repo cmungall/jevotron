@@ -1,20 +1,14 @@
 """Independent chunks → batched field questions → cached assessments."""
 
-import hashlib
-import math
 from collections.abc import Iterable, Iterator
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Protocol
 
+from jevotron.assessment import Evaluator, request_hash, validate_response
 from jevotron.cache import Cache
-from jevotron.client import ENDPOINT, JevClient, JevError
+from jevotron.client import JevClient
 from jevotron.config import Config
-from jevotron.models import Chunk, FieldResult, Result, json_text, resolve
-
-
-class Evaluator(Protocol):
-    def evaluate(self, payload: dict[str, Any]) -> dict[str, Any]: ...
+from jevotron.models import Chunk, FieldResult, Result, resolve
 
 
 def make_request(chunk: Chunk, config: Config) -> tuple[dict, list[str]]:
@@ -47,12 +41,6 @@ def make_request(chunk: Chunk, config: Config) -> tuple[dict, list[str]]:
     return request, paths
 
 
-def request_hash(request: dict) -> str:
-    return hashlib.sha256(
-        json_text({"endpoint": ENDPOINT, "request": request}).encode()
-    ).hexdigest()
-
-
 def preview(chunks: Iterable[Chunk], config: Config | None = None) -> Iterator[dict]:
     """Yield exact model requests without credentials, cache access, or network calls."""
     config = config or Config()
@@ -71,61 +59,6 @@ def preview(chunks: Iterable[Chunk], config: Config | None = None) -> Iterator[d
             "request_hash": request_hash(request),
             "request": request,
         }
-
-
-def _probability(value: Any) -> bool:
-    return (
-        not isinstance(value, bool)
-        and isinstance(value, (int, float))
-        and math.isfinite(value)
-        and 0 <= value <= 1
-    )
-
-
-def validate_response(response: Any, request: dict) -> None:
-    """Never persist failed, partial, or malformed assessments as successes."""
-    try:
-        if (
-            not isinstance(response, dict)
-            or not isinstance(response["model"], str)
-            or not response["model"]
-        ):
-            raise ValueError
-        answers = response["answers"]
-        if not isinstance(answers, dict) or set(answers) != set(request["questions"]):
-            raise ValueError
-        for key, question in request["questions"].items():
-            answer = answers[key]
-            probabilities = answer["probabilities"]
-            if (
-                answer["type"] != "choice"
-                or not isinstance(probabilities, dict)
-                or set(probabilities) != set(question["criteria"])
-                or not all(_probability(p) for p in probabilities.values())
-                or not _probability(answer["confidence"])
-            ):
-                raise ValueError
-            # Jev may round each option probability to two decimal places.
-            rounded = all(
-                math.isclose(p, round(p, 2), abs_tol=1e-12, rel_tol=0)
-                for p in probabilities.values()
-            )
-            tolerance = 0.005 * len(probabilities) + 1e-12 if rounded else 0.001
-            if not math.isclose(
-                sum(probabilities.values()), 1, rel_tol=0, abs_tol=tolerance
-            ):
-                raise ValueError
-            if answer["choice"] not in probabilities or probabilities[
-                answer["choice"]
-            ] < max(probabilities.values()):
-                raise ValueError
-        if not isinstance(response.get("usage", {}), dict):
-            raise ValueError
-        json_text(response)
-    except (KeyError, TypeError, ValueError, OverflowError):
-        raise JevError(
-            "Jev returned an invalid or incomplete assessment; not cached"
-        ) from None
 
 
 def scan(
