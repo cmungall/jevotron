@@ -42,6 +42,29 @@ jevotron scan spiked.csv --guidance "Check airport locations."
 ```
 
 `jt` is a short alias for `jevotron`; both accept the same commands and options.
+
+Show all entries with anomalous fields, highest confidence first, as YAML:
+
+```sh
+jt scan spiked.csv -a -s -O yaml
+jt scan spiked.csv -f /iso_country -t 0.8 --sort-score -O yaml
+```
+
+Filter and order results with SQL expressions, including custom classifications:
+
+```sh
+jt scan spiked.csv --where "label = 'NORMAL'" -O yaml
+jt scan spiked.csv --rows fields --where "label = 'ANOMALY'" \
+  --order-by "confidence DESC" -O yaml
+```
+
+The default view retains whole entries; `--rows fields` filters and orders
+individual field assessments. SQL expressions are evaluated locally with DuckDB.
+
+Short options include `-l` (limit), `-f` (field), `-O` (output format), and `-t`
+(minimum anomaly score). `-a` selects anomalies and `-s` sorts by confidence.
+See [review & export](docs/guides/reports.md) for filtering and score semantics.
+
 Database files are detected by their
 headers, even with an unfamiliar extension. No export or database configuration
 is needed; DuckDB support is included in the installation:

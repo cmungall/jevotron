@@ -13,6 +13,7 @@ from itertools import islice
 from pathlib import Path
 from typing import Annotated
 
+import duckdb
 import typer
 import yaml
 
@@ -30,6 +31,7 @@ from jevotron.parsers import (
     for_path,
     format_spec,
 )
+from jevotron.reports import FIELD_COLUMNS, ReportQuery, report_rows
 from jevotron.runner import preview, scan
 
 app = typer.Typer(
@@ -84,6 +86,7 @@ Fields = Annotated[
     list[str] | None,
     typer.Option(
         "--field",
+        "-f",
         help="JSON Pointer to assess, required on every entry; repeat to select multiple fields.",
         rich_help_panel="Input & guidance",
     ),
@@ -149,6 +152,12 @@ Tables = Annotated[
 class OutputFormat(str, Enum):
     jsonl = "jsonl"
     csv = "csv"
+    yaml = "yaml"
+
+
+class ReportRows(str, Enum):
+    entries = "entries"
+    fields = "fields"
 
 
 @dataclass
@@ -174,8 +183,13 @@ class RunOptions:
     refresh: bool = False
     threshold: float | None = None
     warnings_only: bool = False
+    anomalies_only: bool = False
     sort_score: bool = False
+    sort_confidence: bool = False
     output_format: str = "jsonl"
+    rows: str = "entries"
+    where: str | None = None
+    order_by: str | None = None
 
 
 @app.command("preview")
@@ -193,7 +207,9 @@ def preview_command(
     optional_field: OptionalFields = None,
     relaxed: Relaxed = False,
     id_column: IdColumn = None,
-    limit: Annotated[int, typer.Option(min=1, help="Maximum entries to preview.")] = 3,
+    limit: Annotated[
+        int, typer.Option("--limit", "-l", min=1, help="Maximum entries to preview.")
+    ] = 3,
     output: Output = None,
 ) -> None:
     """Inspect exact model requests without API calls or credentials."""
@@ -237,7 +253,10 @@ def scan_command(
     relaxed: Relaxed = False,
     id_column: IdColumn = None,
     limit: Annotated[
-        int | None, typer.Option(min=1, help="Maximum entries to assess; default all.")
+        int | None,
+        typer.Option(
+            "--limit", "-l", min=1, help="Maximum entries to assess; default all."
+        ),
     ] = None,
     output: Output = None,
     cache: Annotated[
@@ -262,7 +281,9 @@ def scan_command(
     threshold: Annotated[
         float | None,
         typer.Option(
-            help="Warning threshold from 0 to 1; default 0.5 or config value.",
+            "--threshold",
+            "-t",
+            help="Emit only entries with anomaly score at least this value (0 to 1). Also sets the warning threshold; default 0.5 or config value.",
             rich_help_panel="Output",
         ),
     ] = None,
@@ -270,7 +291,17 @@ def scan_command(
         bool,
         typer.Option(
             "--warnings-only",
+            "-w",
             help="Emit only entries at or above the threshold.",
+            rich_help_panel="Output",
+        ),
+    ] = False,
+    anomalies_only: Annotated[
+        bool,
+        typer.Option(
+            "--anomalies-only",
+            "-a",
+            help="Emit only entries with a field classified as ANOMALY (or the configured anomaly label).",
             rich_help_panel="Output",
         ),
     ] = False,
@@ -282,9 +313,42 @@ def scan_command(
             rich_help_panel="Output",
         ),
     ] = False,
+    sort_confidence: Annotated[
+        bool,
+        typer.Option(
+            "--sort-confidence",
+            "-s",
+            help="Buffer results and emit highest confidence first; with --anomalies-only, use the most confident anomalous field, otherwise the highest-scoring field.",
+            rich_help_panel="Output",
+        ),
+    ] = False,
     output_format: Annotated[
-        OutputFormat, typer.Option(help="Report format.", rich_help_panel="Output")
+        OutputFormat,
+        typer.Option(
+            "--output-format", "-O", help="Report format.", rich_help_panel="Output"
+        ),
     ] = OutputFormat.jsonl,
+    rows: Annotated[
+        ReportRows,
+        typer.Option(
+            help="Report entries with nested fields, or individual field assessments.",
+            rich_help_panel="Output",
+        ),
+    ] = ReportRows.entries,
+    where: Annotated[
+        str | None,
+        typer.Option(
+            help="SQL row expression filtering assessment results, e.g. label = 'NORMAL' AND confidence >= 0.9. Combines with other filters using AND.",
+            rich_help_panel="Output",
+        ),
+    ] = None,
+    order_by: Annotated[
+        str | None,
+        typer.Option(
+            help="SQL ordering, e.g. confidence DESC, score DESC. Buffers the report; ties retain input order.",
+            rich_help_panel="Output",
+        ),
+    ] = None,
 ) -> None:
     """Assess fields with Jev, reusing cached results for unchanged entries."""
     raise typer.Exit(
@@ -311,8 +375,13 @@ def scan_command(
                 refresh=refresh,
                 threshold=threshold,
                 warnings_only=warnings_only,
+                anomalies_only=anomalies_only,
                 sort_score=sort_score,
+                sort_confidence=sort_confidence,
                 output_format=output_format.value,
+                rows=rows.value,
+                where=where,
+                order_by=order_by,
             )
         )
     )
@@ -472,25 +541,26 @@ def _selected(chunks, args, selection):
 
 
 def _write_csv(writer, result):
-    for field in result.fields:
+    for field in result["fields"]:
         writer.writerow(
             {
-                "id": result.id,
-                "source": result.source,
-                "label": result.label,
-                "score": result.score,
-                "warning": result.warning,
-                "field": field.path,
-                "value": json_text(field.value),
-                "field_label": field.label,
-                "field_score": field.score,
-                "probabilities": json_text(field.probabilities),
-                "confidence": field.confidence,
-                "model": result.model,
-                "assessed_at": result.assessed_at,
-                "request_hash": result.request_hash,
-                "cached": result.cached,
-                "absent": json_text(result.absent),
+                "id": result["id"],
+                "source": result["source"],
+                "label": result["label"],
+                "score": result["score"],
+                "warning": result["warning"],
+                "field": field["path"],
+                "value": json_text(field["value"]),
+                "field_label": field["label"],
+                "field_score": field["score"],
+                "probabilities": json_text(field["probabilities"]),
+                "confidence": field["confidence"],
+                "entry_confidence": result["confidence"],
+                "model": result["model"],
+                "assessed_at": result["assessed_at"],
+                "request_hash": result["request_hash"],
+                "cached": result["cached"],
+                "absent": json_text(result["absent"]),
             }
         )
 
@@ -504,6 +574,10 @@ def _same_file(left: Path, right: Path) -> bool:
 def _run(args: RunOptions) -> int:
     count = cached = warnings = emitted = 0
     try:
+        if args.sort_score and args.sort_confidence:
+            raise ValueError("Use either --sort-score or --sort-confidence, not both")
+        if args.order_by is not None and (args.sort_score or args.sort_confidence):
+            raise ValueError("Use --order-by or a sort shortcut, not both")
         if args.guidance is not None and args.guidance_file is not None:
             raise ValueError(
                 "Use either --guidance TEXT or --guidance-file PATH, not both"
@@ -572,6 +646,11 @@ def _run(args: RunOptions) -> int:
         with ExitStack() as stack:
             if hasattr(chunks, "close"):
                 stack.enter_context(closing(chunks))
+            query = None
+            if args.where is not None or args.order_by is not None:
+                query = stack.enter_context(
+                    closing(ReportQuery(args.rows, args.where, args.order_by))
+                )
             selected = _selected(chunks, selection_args, selection)
             limited = (
                 islice(selected, args.limit) if args.limit is not None else selected
@@ -603,7 +682,9 @@ def _run(args: RunOptions) -> int:
             if args.output_format == "csv":
                 writer = csv.DictWriter(
                     output,
-                    fieldnames=[
+                    fieldnames=list(FIELD_COLUMNS)
+                    if args.rows == "fields"
+                    else [
                         "id",
                         "source",
                         "label",
@@ -615,6 +696,7 @@ def _run(args: RunOptions) -> int:
                         "field_score",
                         "probabilities",
                         "confidence",
+                        "entry_confidence",
                         "model",
                         "assessed_at",
                         "request_hash",
@@ -626,30 +708,71 @@ def _run(args: RunOptions) -> int:
 
             def write(result):
                 nonlocal emitted
-                if args.warnings_only and not result.warning:
-                    return
                 if writer:
-                    _write_csv(writer, result)
+                    if args.rows == "fields":
+                        writer.writerow(
+                            {
+                                key: json_text(value)
+                                if FIELD_COLUMNS[key] == "JSON"
+                                else value
+                                for key, value in result.items()
+                            }
+                        )
+                    else:
+                        _write_csv(writer, result)
+                elif args.output_format == "yaml":
+                    # Successive one-item sequences form one streaming YAML list.
+                    yaml.safe_dump(
+                        [result], output, sort_keys=False, allow_unicode=True
+                    )
                 else:
-                    print(json_text(result.to_dict()), file=output)
+                    print(json_text(result), file=output)
                 output.flush()
                 emitted += 1
 
-            pending = []
-            for result in results:
-                count += 1
-                cached += result.cached
-                warnings += result.warning
-                if args.sort_score:
-                    pending.append(result)
-                else:
-                    write(result)
-            for result in sorted(pending, key=lambda r: r.score, reverse=True):
+            def rows():
+                nonlocal count, cached, warnings
+                for result in results:
+                    count += 1
+                    cached += result.cached
+                    warnings += result.warning
+                    for row in report_rows(result, args.rows, config.threshold):
+                        if (
+                            args.warnings_only or args.threshold is not None
+                        ) and not row["warning"]:
+                            continue
+                        if args.anomalies_only:
+                            labels = (
+                                [field["label"] for field in row["fields"]]
+                                if args.rows == "entries"
+                                else [row["label"]]
+                            )
+                            if config.anomaly_label not in labels:
+                                continue
+                        yield row
+                selection.verify()
+
+            def sort_key(result):
+                if not args.sort_confidence:
+                    return result["score"]
+                if args.anomalies_only and args.rows == "entries":
+                    return max(
+                        field["confidence"]
+                        for field in result["fields"]
+                        if field["label"] == config.anomaly_label
+                    )
+                return result["confidence"]
+
+            report = query.select(rows()) if query is not None else rows()
+            if args.sort_score or args.sort_confidence:
+                report = sorted(report, key=sort_key, reverse=True)
+            for result in report:
                 write(result)
-            selection.verify()
+            if args.output_format == "yaml" and not emitted:
+                print("[]", file=output)
         print(
             f"Assessed {count} entries ({cached} cached); {warnings} warnings; "
-            f"emitted {emitted} entries." + selection.report(),
+            f"emitted {emitted} {args.rows}." + selection.report(),
             file=sys.stderr,
         )
         return 0
@@ -664,6 +787,7 @@ def _run(args: RunOptions) -> int:
         ValueError,
         OSError,
         sqlite3.Error,
+        duckdb.Error,
         yaml.YAMLError,
         csv.Error,
         EOFError,

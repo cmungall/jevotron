@@ -4,6 +4,7 @@ import json
 import sys
 
 import pytest
+import yaml
 
 from jevotron.cli import main
 from jevotron.config import load_config
@@ -125,6 +126,239 @@ def test_scan_warnings_csv_then_cached_json(
     assert all(r["cached"] for r in results)
     assert len(fake.requests) == 3
     assert "3 cached" in output.err
+
+
+@pytest.mark.parametrize("threshold,ids", [(0, ["1", "2", "3"]), (0.9, ["2"]), (1, [])])
+def test_explicit_threshold_filters_fresh_and_cached_reports(
+    input_file, fake, monkeypatch, tmp_path, capsys, threshold, ids
+):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    args = ["scan", str(input_file), "-t", str(threshold)]
+    for cached in (False, True):
+        assert main(args) == 0
+        output = capsys.readouterr()
+        rows = [json.loads(line) for line in output.out.splitlines()]
+        assert [row["id"] for row in rows] == ids
+        assert all(row["warning"] and row["cached"] == cached for row in rows)
+        assert f"emitted {len(ids)} entries" in output.err
+    assert len(fake.requests) == 3
+
+
+def test_scan_short_options_and_yaml(input_file, fake, monkeypatch, capsys, tmp_path):
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    output = tmp_path / "report.yaml"
+    assert (
+        main(
+            [
+                "scan",
+                str(input_file),
+                "-l",
+                "2",
+                "-f",
+                "/value",
+                "-f",
+                "/id",
+                "-O",
+                "yaml",
+                "-o",
+                str(output),
+                "--no-cache",
+            ]
+        )
+        == 0
+    )
+    rows = yaml.safe_load(output.read_text())
+    assert [row["id"] for row in rows] == ["1", "2"]
+    assert rows[1]["fields"][1]["value"] == "BAD"
+    assert [field["path"] for field in rows[0]["fields"]] == ["/id", "/value"]
+    assert rows[1]["warning"] is True
+    assert rows[1]["fields"][1]["probabilities"]["ANOMALY"] == 0.9
+    assert len(fake.requests) == 2
+    assert not capsys.readouterr().out
+
+
+def test_empty_yaml_report(input_file, fake, monkeypatch, capsys):
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    assert main(["scan", str(input_file), "-t", "1", "-O", "yaml", "--no-cache"]) == 0
+    assert yaml.safe_load(capsys.readouterr().out) == []
+
+
+@pytest.mark.parametrize("output_format", ["jsonl", "csv", "yaml"])
+@pytest.mark.parametrize("anomaly_label", ["ANOMALY", "SUSPICIOUS"])
+def test_anomalies_sorted_by_confidence(
+    tmp_path, fake, monkeypatch, capsys, output_format, anomaly_label
+):
+    data = tmp_path / "data.csv"
+    data.write_text("id,value,context\na,BAD,ok\nb,BAD,ok\nc,ok,ok\nd,BAD,ok\n")
+    config = tmp_path / "config.py"
+    config.write_text(
+        "from jevotron import Config\n"
+        f"config = Config(labels=['NORMAL', '{anomaly_label}'], "
+        f"anomaly_label='{anomaly_label}', threshold=0.99)\n"
+    )
+    evaluate = fake.evaluate
+
+    def scored_response(request):
+        response = evaluate(request)
+        entry_id = request["state"]["entry"]["id"]
+        score, confidence = {
+            "a": (0.95, 0.6),
+            "b": (0.8, 0.9),
+            "c": (0.1, 1),
+            "d": (0.8, 0.9),
+        }[entry_id]
+        for key, question in request["questions"].items():
+            answer = response["answers"][key]
+            if question["instructions"]["field_path"] == "/value":
+                answer["probabilities"] = {"NORMAL": 1 - score, anomaly_label: score}
+                answer["confidence"] = confidence
+            else:
+                answer["confidence"] = 1
+        return response
+
+    monkeypatch.setattr(fake, "evaluate", scored_response)
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    args = [
+        "scan",
+        str(data),
+        "--config",
+        str(config),
+        "--id-column",
+        "id",
+        "--no-cache",
+        "-O",
+        output_format,
+    ]
+    for flags, expected in [
+        (["-a", "-s"], ["b", "d", "a"]),
+        (["--anomalies-only", "--sort-confidence", "-t", "0.9"], ["a"]),
+        (["-a", "--sort-score"], ["a", "b", "d"]),
+        (["--sort-confidence"], ["c", "b", "d", "a"]),
+        (
+            ["--where", f"label = '{anomaly_label}'", "--order-by", "confidence DESC"],
+            ["b", "d", "a"],
+        ),
+        (["--where", "label = 'NORMAL' AND confidence >= 0.9"], ["c"]),
+        (
+            [
+                "--rows",
+                "fields",
+                "--where",
+                f"label = '{anomaly_label}'",
+                "--order-by",
+                "confidence DESC",
+            ],
+            ["b", "d", "a"],
+        ),
+    ]:
+        assert main([*args, *flags]) == 0
+        output = capsys.readouterr().out
+        if output_format == "yaml":
+            rows = yaml.safe_load(output)
+        elif output_format == "csv":
+            rows = list(csv.DictReader(io.StringIO(output)))
+        else:
+            rows = [json.loads(line) for line in output.splitlines()]
+        assert list(dict.fromkeys(row["id"] for row in rows)) == expected
+
+
+def test_conflicting_sorts_fail_before_inference(input_file, fake, monkeypatch, capsys):
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    assert main(["scan", str(input_file), "--sort-score", "-s", "--no-cache"]) == 1
+    output = capsys.readouterr()
+    assert "Use either --sort-score or --sort-confidence" in output.err
+    assert not output.out
+    assert not fake.requests
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        ["--where", "unknown_column = 1"],
+        ["--where", "label ="],
+        ["--where", ""],
+        ["--where", "true; DROP TABLE report_rows"],
+        ["--where", "score > (SELECT avg(score) FROM report_rows)"],
+        ["--where", "score > avg(score)"],
+        ["--where", "row_number() OVER () > 1"],
+        ["--where", "path = '/value'"],
+        ["--order-by", "unknown_column DESC"],
+        ["--order-by", "confidence DESC LIMIT 1"],
+        ["--order-by", "(SELECT 1)"],
+        ["--order-by", "row_number() OVER ()"],
+        ["--order-by", ""],
+        ["--order-by", "confidence DESC", "-s"],
+        ["--order-by", "score DESC", "--sort-score"],
+    ],
+)
+def test_invalid_report_query_fails_before_inference_or_output_write(
+    input_file, tmp_path, fake, monkeypatch, capsys, options
+):
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    output_file = tmp_path / "report.jsonl"
+    output_file.write_text("keep existing report")
+    assert (
+        main(["scan", str(input_file), "--no-cache", "-o", str(output_file), *options])
+        == 1
+    )
+    output = capsys.readouterr()
+    assert "Error:" in output.err and "0 entries assessed" in output.err
+    assert not output.out and not fake.requests
+    assert output_file.read_text() == "keep existing report"
+
+
+def test_sql_filters_reuse_cache_and_combine_with_shortcuts(
+    input_file, tmp_path, fake, monkeypatch, capsys
+):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    args = ["scan", str(input_file)]
+    assert main(args) == 0
+    capsys.readouterr()
+    for options, expected in [
+        (["--where", "label = 'NORMAL'"], [("1", None), ("3", None)]),
+        (["--where", "label = 'NORMAL'", "-a"], []),
+        (["--where", "score < 0.9", "-t", "0.8"], []),
+        (
+            ["--rows", "fields", "--where", "label = 'NORMAL' AND entry_warning"],
+            [("2", "/id")],
+        ),
+        (
+            ["--rows", "fields", "-t", "0.8", "--where", "confidence >= 0.8"],
+            [("2", "/value")],
+        ),
+        (["--rows", "fields", "-a", "-s"], [("2", "/value")]),
+    ]:
+        assert main([*args, *options]) == 0
+        rows = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+        assert [(row["id"], row.get("path")) for row in rows] == expected
+        assert all(row["cached"] for row in rows)
+    assert len(fake.requests) == 3
+
+
+def test_limit_precedes_report_filter(input_file, fake, monkeypatch, capsys):
+    monkeypatch.setattr("jevotron.runner.JevClient", lambda: fake)
+    assert (
+        main(
+            [
+                "scan",
+                str(input_file),
+                "--no-cache",
+                "-l",
+                "1",
+                "--where",
+                "label = 'ANOMALY'",
+                "-O",
+                "yaml",
+            ]
+        )
+        == 0
+    )
+    output = capsys.readouterr()
+    assert yaml.safe_load(output.out) == []
+    assert "1 entries" in output.err
+    assert len(fake.requests) == 1
 
 
 def test_local_config_custom_parser_and_relative_guidance(tmp_path, capsys):
