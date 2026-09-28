@@ -4,13 +4,16 @@ import importlib.util
 import math
 import sys
 from collections.abc import Callable, Iterable
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
+from threading import RLock
 from typing import Any
 
 from jevotron.models import Chunk, validate_json
 
 Parser = Callable[[Path], Iterable[Chunk]]
+_CONFIG_IMPORT_LOCK = RLock()
 
 
 @dataclass
@@ -74,6 +77,67 @@ class Config:
         return {label: defaults.get(label) for label in self.labels}
 
 
+def _sibling_roots(directory: Path) -> set[str]:
+    roots = {"_jevotron_local_config"}
+    for child in directory.iterdir():
+        if child.is_file() and child.suffix == ".py":
+            name = child.stem
+        elif child.is_dir() and child.name.isidentifier():
+            name = child.name
+        else:
+            continue
+        # Ask the normal finders without consulting sys.modules. A namespace
+        # directory does not win over a regular installed package, and local
+        # files do not win over built-in/frozen modules.
+        for finder in sys.meta_path:
+            spec = finder.find_spec(name, None)
+            if spec is not None:
+                break
+        else:
+            continue
+        if spec.origin not in (None, "built-in", "frozen"):
+            origin = Path(spec.origin)
+            if origin == child or origin.is_relative_to(child):
+                roots.add(name)
+        elif spec.origin is None and spec.submodule_search_locations is not None:
+            if str(child) in spec.submodule_search_locations:
+                roots.add(name)
+    return roots
+
+
+@contextmanager
+def _local_imports(directory: Path):
+    """Scope sibling imports to this load without changing the caller's modules."""
+    # Module caching is process-wide, as is sys.path. Serialize our loaders,
+    # including nested loads, while preserving imports owned by the caller.
+    with _CONFIG_IMPORT_LOCK:
+        previous_path = sys.path[:]
+        try:
+            sys.path.insert(0, str(directory))
+            importlib.invalidate_caches()
+            roots = _sibling_roots(directory)
+
+            def local(name):
+                return name.partition(".")[0] in roots
+
+            previous_modules = {
+                name: module
+                for name, module in sys.modules.copy().items()
+                if local(name)
+            }
+            try:
+                for name in previous_modules:
+                    sys.modules.pop(name, None)
+                yield
+            finally:
+                for name in list(sys.modules):
+                    if local(name):
+                        del sys.modules[name]
+                sys.modules.update(previous_modules)
+        finally:
+            sys.path[:] = previous_path
+
+
 def load_config(path: Path) -> Config:
     """Execute a trusted local file exporting `config = Config(...)`."""
     path = path.resolve()
@@ -83,21 +147,12 @@ def load_config(path: Path) -> Config:
     if spec is None or spec.loader is None:
         raise ValueError(f"Cannot load Python config: {path}")
     module = importlib.util.module_from_spec(spec)
-    # Permit `from helpers import ...` next to the config, without changing cwd.
-    previous_path = sys.path[:]
-    sys.path.insert(0, str(path.parent))
-    previous_module = sys.modules.get(spec.name)
-    sys.modules[spec.name] = module
-    try:
+    with _local_imports(path.parent):
+        # Register during execution so dataclass decorators can resolve globals.
+        sys.modules[spec.name] = module
         # Read the current source instead of a same-mtime/same-size stale .pyc
         # after an agent or editor rapidly rewrites a local config.
         exec(compile(path.read_bytes(), str(path), "exec"), module.__dict__)
-    finally:
-        sys.path[:] = previous_path
-        if previous_module is None:
-            sys.modules.pop(spec.name, None)
-        else:
-            sys.modules[spec.name] = previous_module
     config = getattr(module, "config", None)
     if not isinstance(config, Config):
         raise ValueError("The config file must export `config = Config(...)`")

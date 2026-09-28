@@ -29,6 +29,13 @@ Config files are explicitly loaded, ordinary Python. They export one `Config`
 object named `config`. No plugin registration is required. Install any custom
 parser dependencies in the same environment as the CLI.
 
+Config files can import sibling Python helpers or packages. Those imports are
+scoped to each config load, so two projects may use the same helper name without
+sharing settings. Import local helpers at module scope and retain their functions,
+classes, or module objects for use by your parser. After loading, pre-existing
+modules with those names and the Python search path are restored. Deferred imports
+inside a parser use the caller's normal Python environment.
+
 ## Override settings for a run
 
 ```sh
