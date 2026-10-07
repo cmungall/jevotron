@@ -45,6 +45,40 @@ column before parsing and validation, without modifying the reusable config.
 An arbitrary custom parser must first yield a chunk successfully; the CLI then
 replaces its reporting ID. The flag cannot bypass errors inside custom parser code.
 
+## Use OpenAI Decisions
+
+The [OpenAI Decisions API](https://developers.openai.com/api/docs/guides/decisions)
+offers the same question types as Jev. Pick a `gpt-*` model and jevotron sends each
+request there instead:
+
+```sh
+export OPENAI_API_KEY="your-api-key"
+jevotron scan spiked.csv --model gpt-6-luna --guidance "Check airport locations."
+```
+
+```python
+config = Config(model="gpt-6-luna", guidance="Check airport locations.")
+```
+
+Each field is still one choice question. The entry, guidance, and exemplars go in
+the single-turn text input. Question keys become question names, so answers route
+back to the same fields. Cache, batching, and output formats are unchanged. The
+model name is part of every cache key, so OpenAI and Jev assessments never mix.
+
+`jevotron preview` shows the cached (Jev-shaped) `request`, and for OpenAI models
+it also shows the translated `wire_request` that is actually sent.
+
+Caveats:
+
+- Pricing differs: OpenAI charges $0.10 per million input tokens and Jev charges
+  $0.042, with no output charge from either. Token estimates and `--batch-tokens`
+  budgets are based on Jev's tokenizer and context limits.
+- If the API declines a question (a `refusal` answer), the scan stops and caches
+  nothing for that entry.
+- jevotron sends text only. Image input is not used.
+- Scores from different models are not directly comparable. Re-check thresholds
+  on a labelled sample before switching.
+
 ## Customize labels
 
 ```python

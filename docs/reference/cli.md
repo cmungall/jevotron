@@ -13,7 +13,9 @@ same options in your terminal.
 ## Environment
 
 `TYPESAFE_API_KEY` supplies the API credential for uncached assessments. Preview
-and complete cache replays do not require it.
+and complete cache replays do not require it. With a `gpt-*` model such as
+`gpt-6-luna`, `OPENAI_API_KEY` is used instead; see
+[OpenAI Decisions](../guides/config.md#use-openai-decisions).
 
 ## Precedence
 

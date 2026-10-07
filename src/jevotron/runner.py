@@ -19,7 +19,14 @@ from jevotron.batching import (
     windows,
 )
 from jevotron.cache import Cache
-from jevotron.client import ContextLimitError, JevClient, JevError
+from jevotron.client import (
+    ContextLimitError,
+    JevClient,
+    JevError,
+    OpenAIDecisionsClient,
+    is_openai_model,
+    to_openai,
+)
 from jevotron.config import Config
 from jevotron.models import Chunk, FieldResult, Result, json_text, resolve
 from jevotron.requests import make_request, request_hash
@@ -84,6 +91,9 @@ def preview(
                 },
                 "cache_assumption": "all misses",
             }
+            # Cache identities use the canonical request; show what is sent.
+            if is_openai_model(config.model):
+                item["wire_request"] = to_openai(batch.request)
             # Keep the familiar entry preview fields for single-entry requests.
             if len(indexes) == 1:
                 item.update(
@@ -271,7 +281,11 @@ def scan(
             if not missing:
                 continue
             if client is None:
-                owned_client = JevClient()
+                owned_client = (
+                    OpenAIDecisionsClient
+                    if is_openai_model(config.model)
+                    else JevClient
+                )()
                 client = owned_client
             responses = [{"answers": {}} for _ in missing]
             provenance = [[] for _ in missing]
