@@ -25,6 +25,7 @@ from jevotron.client import (
     JevError,
     OpenAIDecisionsClient,
     is_openai_model,
+    service_name,
     to_openai,
 )
 from jevotron.config import Config
@@ -152,8 +153,10 @@ def validate_response(response: Any, request: dict) -> None:
             raise ValueError
         json_text(response)
     except (KeyError, TypeError, ValueError, OverflowError):
+        model = request.get("model") if isinstance(request, dict) else None
         raise JevError(
-            "Jev returned an invalid or incomplete assessment; not cached"
+            f"{service_name(model)} returned an invalid or incomplete assessment; "
+            "not cached"
         ) from None
 
 
@@ -175,7 +178,8 @@ def _evaluate(batch: Batch, client: Evaluator, stats: ScanStats, depth=0):
         keys = list(batch.owners)
         if len(keys) == 1 or depth >= 10:
             raise ContextLimitError(
-                "Jev rejected the context size after splitting; reduce guidance, "
+                f"{service_name(batch.request.get('model'))} rejected the context "
+                "size after splitting; reduce guidance, "
                 "exemplars, or entry context. Nothing was truncated."
             ) from error
         middle = len(keys) // 2
@@ -306,7 +310,8 @@ def scan(
                             != response["model"]
                         ):
                             raise JevError(
-                                "Jev model changed while assessing a split entry; not cached"
+                                f"{service_name(config.model)} model changed while "
+                                "assessing a split entry; not cached"
                             )
                         entry_response["model"] = response["model"]
                         entry_response["answers"][field] = response["answers"][key]

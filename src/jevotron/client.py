@@ -162,6 +162,13 @@ def is_openai_model(model: str) -> bool:
     return model.startswith("gpt-")
 
 
+def service_name(model: Any) -> str:
+    """The service named in errors about `model`'s assessments."""
+    if isinstance(model, str) and is_openai_model(model):
+        return OpenAIDecisionsClient.service
+    return JevClient.service
+
+
 def _openai_instructions(instructions: dict[str, Any]) -> str:
     # Decisions takes text instructions. Keep the field selection (and, for
     # shared layouts, the entry) as JSON data after the question.
@@ -230,7 +237,8 @@ def from_openai(data: Any, payload: dict[str, Any]) -> dict[str, Any]:
                 if item["value"] in probabilities:
                     raise ValueError
                 probabilities[item["value"]] = item["probability"]
-            if name in answers or name not in payload["questions"]:
+            # Dicts would silently drop duplicates; the runner checks the set.
+            if name in answers:
                 raise ValueError
             answers[name] = {
                 "type": answer["type"],
@@ -238,7 +246,11 @@ def from_openai(data: Any, payload: dict[str, Any]) -> dict[str, Any]:
                 "probabilities": probabilities,
                 "confidence": answer["confidence"],
             }
-        return {"model": data["model"], "answers": answers, "usage": data["usage"]}
+        return {
+            "model": data["model"],
+            "answers": answers,
+            "usage": data.get("usage", {}),
+        }
     except (KeyError, TypeError, ValueError):
         raise JevError(
             "OpenAI Decisions returned an invalid or incomplete assessment; not cached"

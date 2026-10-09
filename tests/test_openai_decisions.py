@@ -157,3 +157,39 @@ def test_errors_name_the_service_without_leaking_body():
     with client(handler) as c, pytest.raises(JevError) as error:
         c.evaluate({"model": "gpt-6-luna", "state": {}, "questions": {}})
     assert str(error.value) == "OpenAI Decisions HTTP 401; scan stopped"
+
+
+def openai_answer(probabilities, **extra):
+    return httpx.Response(
+        200,
+        json={
+            "model": "gpt-6-luna",
+            "answers": [
+                {
+                    "type": "choice",
+                    "name": "field_0",
+                    "choice": "NORMAL",
+                    "probabilities": [
+                        {"value": k, "probability": v} for k, v in probabilities
+                    ],
+                    "confidence": 0.9,
+                }
+            ],
+            **extra,
+        },
+    )
+
+
+def test_runner_validation_errors_name_openai():
+    chunk = Chunk("a", {"v": 1})
+    bad = client(lambda r: openai_answer([("NORMAL", 0.7), ("ANOMALY", 0.7)]))
+    with bad, pytest.raises(JevError, match="^OpenAI Decisions returned an invalid"):
+        list(scan([chunk], Config(model="gpt-6-luna"), cache=None, client=bad))
+
+
+def test_missing_usage_is_accepted_like_jev():
+    chunk = Chunk("a", {"v": 1})
+    ok = client(lambda r: openai_answer([("NORMAL", 0.9), ("ANOMALY", 0.1)]))
+    with ok:
+        [result] = scan([chunk], Config(model="gpt-6-luna"), cache=None, client=ok)
+    assert result.label == "NORMAL" and result.usage == {}
