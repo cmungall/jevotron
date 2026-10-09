@@ -105,7 +105,7 @@ class JevClient:
         """The wire request for a canonical (Jev-shaped) request."""
         return payload
 
-    def decode(self, data: Any, payload: dict[str, Any]) -> Any:
+    def decode(self, data: Any) -> Any:
         """A canonical (Jev-shaped) response; the runner validates it."""
         return data
 
@@ -144,7 +144,7 @@ class JevClient:
                 data = response.json()
             except ValueError:
                 raise JevError(f"{name} returned invalid JSON") from None
-            return self.decode(data, payload)
+            return self.decode(data)
         raise JevError(f"{name} request failed")
 
     def close(self) -> None:
@@ -219,7 +219,7 @@ def to_openai(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def from_openai(data: Any, payload: dict[str, Any]) -> dict[str, Any]:
+def from_openai(data: Any) -> dict[str, Any]:
     """Translate a Decisions response into the canonical Jev shape.
 
     Refusals and malformed answers are errors, so they are never cached.
@@ -267,5 +267,5 @@ class OpenAIDecisionsClient(JevClient):
     def encode(self, payload: dict[str, Any]) -> dict[str, Any]:
         return to_openai(payload)
 
-    def decode(self, data: Any, payload: dict[str, Any]) -> Any:
-        return from_openai(data, payload)
+    def decode(self, data: Any) -> Any:
+        return from_openai(data)

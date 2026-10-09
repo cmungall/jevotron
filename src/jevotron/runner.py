@@ -153,9 +153,8 @@ def validate_response(response: Any, request: dict) -> None:
             raise ValueError
         json_text(response)
     except (KeyError, TypeError, ValueError, OverflowError):
-        model = request.get("model") if isinstance(request, dict) else None
         raise JevError(
-            f"{service_name(model)} returned an invalid or incomplete assessment; "
+            f"{service_name(request.get('model'))} returned an invalid or incomplete assessment; "
             "not cached"
         ) from None
 
