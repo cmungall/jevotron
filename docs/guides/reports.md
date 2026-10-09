@@ -154,8 +154,9 @@ assess all entries; filtering only reduces the report, not inference work.
     ```
 
     One JSON object per entry, with nested field results. Includes `id`, `source`,
-    `label`, `score`, `warning`, `fields`, `model`, `assessed_at`, `request_hash`,
-    `cached`, and `usage`. Each field includes its path, value, label, probabilities,
+    `label`, `score`, `warning`, `fields`, `absent`, `model`, `assessed_at`,
+    `request_hash`, `cached`, and `usage`. `absent` lists selected paths the
+    entry did not carry (see [sparse fields](files.md#entries-that-do-not-all-carry-the-same-fields)). Each field includes its path, value, label, probabilities,
     confidence, and anomaly score.
 
 === "CSV"
@@ -165,7 +166,7 @@ assess all entries; filtering only reduces the report, not inference work.
     ```
 
     One row per assessed field, repeating the entry score and metadata.
-    Nested field values and probabilities are JSON text. `--warnings-only`
+    Nested field values, probabilities, and the `absent` list are JSON text. `--warnings-only`
     retains all assessed fields of warning entries for review.
 
     In the default entry view, `label`, `score`, and `warning` describe the entry;
