@@ -80,4 +80,5 @@ nav:
   - Advanced:
       - Custom parsers: advanced/parsers.md
       - Python integration: advanced/python.md
+      - jevotron and llm: advanced/llm.md
       - Documentation development: advanced/docs.md

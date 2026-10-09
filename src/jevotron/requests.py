@@ -38,6 +38,8 @@ def make_request(chunk: Chunk, config: Config) -> tuple[dict, list[str]]:
 
 
 def request_hash(request: dict) -> str:
+    # Always the Jev endpoint, even for OpenAI models: their `model` already
+    # keeps keys distinct, and changing this would invalidate every Jev cache.
     return hashlib.sha256(
         json_text({"endpoint": ENDPOINT, "request": request}).encode()
     ).hexdigest()
