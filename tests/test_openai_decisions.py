@@ -8,6 +8,7 @@ from jevotron.client import (
     JevClient,
     JevError,
     OpenAIDecisionsClient,
+    RefusalError,
 )
 from jevotron.config import Config
 from jevotron.models import Chunk
@@ -120,7 +121,6 @@ def test_preview_shows_wire_request_only_for_openai():
 @pytest.mark.parametrize(
     "answers",
     [
-        [{"type": "refusal", "name": "field_0"}],
         [{"type": "choice", "name": "field_0"}],
         "not-a-list",
     ],
@@ -193,3 +193,46 @@ def test_missing_usage_is_accepted_like_jev():
     with ok:
         [result] = scan([chunk], Config(model="gpt-6-luna"), cache=None, client=ok)
     assert result.label == "NORMAL" and result.usage == {}
+
+
+@pytest.mark.parametrize("batch_size", [1, 2])
+def test_refusal_names_entry_and_field_and_caches_nothing(cache_path, batch_size):
+    def handler(request):
+        body = json.loads(request.content)
+        answers = []
+        for q in body["questions"]:
+            if '"field_value": "BAD"' in q["instructions"]:
+                answers.append({"type": "refusal", "name": q["name"]})
+            else:
+                answers.append(
+                    {
+                        "type": "choice",
+                        "name": q["name"],
+                        "choice": "NORMAL",
+                        "probabilities": [
+                            {"value": "NORMAL", "probability": 0.9},
+                            {"value": "ANOMALY", "probability": 0.1},
+                        ],
+                        "confidence": 0.9,
+                    }
+                )
+        return httpx.Response(200, json={"model": "gpt-6-luna", "answers": answers})
+
+    chunks = [
+        Chunk("ok", {"v": "fine"}),
+        Chunk("bad", {"v": "fine", "w": "BAD"}),
+    ]
+    config = Config(model="gpt-6-luna")
+    with client(handler) as c, pytest.raises(RefusalError) as error:
+        list(scan(chunks, config, cache=cache_path, client=c, batch_size=batch_size))
+    assert "field /w of entry 'bad'" in str(error.value)
+    assert "Exclude or edit" in str(error.value)
+    # Per-entry requests cache the earlier entry; a shared batch caches neither.
+    with pytest.raises(JevError, match="OPENAI_API_KEY"):
+        list(scan(chunks[1:], config, cache=cache_path, batch_size=batch_size))
+    if batch_size == 1:
+        [cached] = scan(chunks[:1], config, cache=cache_path)
+        assert cached.cached
+    else:
+        with pytest.raises(JevError, match="OPENAI_API_KEY"):
+            list(scan(chunks[:1], config, cache=cache_path, batch_size=batch_size))

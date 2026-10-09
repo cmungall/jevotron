@@ -75,8 +75,8 @@ Caveats:
   budgets are based on Jev's tokenizer and context limits.
 - If the API declines a question (a `refusal` answer), the scan stops and caches
   nothing from that request. Entries assessed in earlier requests stay cached;
-  others in the same batch do not. A rerun usually hits the same refusal, so
-  exclude or edit that entry to continue.
+  others in the same batch do not. The error names the refused entry and field.
+  A rerun usually hits the same refusal, so exclude or edit that entry to continue.
 - jevotron sends text only. Image input is not used.
 - Scores from different models are not directly comparable. Re-check thresholds
   on a labelled sample before switching.

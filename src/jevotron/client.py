@@ -45,6 +45,14 @@ class ContextLimitError(JevError):
     """The service explicitly rejected the input's token/context size."""
 
 
+class RefusalError(JevError):
+    """The service declined to answer the question named `question`."""
+
+    def __init__(self, message: str, question: str):
+        super().__init__(message)
+        self.question = question
+
+
 def _context_limit(response: httpx.Response) -> bool:
     if response.status_code not in (400, 413, 422):
         return False
@@ -229,8 +237,9 @@ def from_openai(data: Any) -> dict[str, Any]:
         for answer in data["answers"]:
             name = answer["name"]
             if answer["type"] == "refusal":
-                raise JevError(
-                    "OpenAI Decisions declined to answer a question; not cached"
+                raise RefusalError(
+                    "OpenAI Decisions declined to answer a question; not cached",
+                    name,
                 )
             probabilities = {}
             for item in answer["probabilities"]:
@@ -251,6 +260,8 @@ def from_openai(data: Any) -> dict[str, Any]:
             "answers": answers,
             "usage": data.get("usage", {}),
         }
+    except RefusalError:
+        raise
     except (KeyError, TypeError, ValueError):
         raise JevError(
             "OpenAI Decisions returned an invalid or incomplete assessment; not cached"

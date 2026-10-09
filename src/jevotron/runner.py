@@ -24,6 +24,7 @@ from jevotron.client import (
     JevClient,
     JevError,
     OpenAIDecisionsClient,
+    RefusalError,
     is_openai_model,
     service_name,
     to_openai,
@@ -202,6 +203,25 @@ def _evaluate(batch: Batch, client: Evaluator, stats: ScanStats, depth=0):
     yield batch, response
 
 
+def _refusals_named(results, batch: Batch, plans: list[EntryPlan]):
+    """Say which entry and field was refused, so it can be excluded or edited."""
+    try:
+        yield from results
+    except RefusalError as error:
+        owner = batch.owners.get(error.question)
+        if owner is None:
+            raise
+        index, field = owner
+        plan = plans[index]
+        path = plan.paths[int(field.removeprefix("field_"))]
+        raise RefusalError(
+            f"{service_name(batch.request.get('model'))} declined to assess field "
+            f"{path} of entry {plan.chunk.id!r}; nothing from that request was "
+            "cached. Exclude or edit that entry to continue.",
+            error.question,
+        ) from None
+
+
 def _result(
     plan: EntryPlan, response: dict, assessed_at: str, cached: bool, config: Config
 ):
@@ -293,7 +313,9 @@ def scan(
             responses = [{"answers": {}} for _ in missing]
             provenance = [[] for _ in missing]
             for proposed in pack(missing, options):
-                for batch, response in _evaluate(proposed, client, stats):
+                for batch, response in _refusals_named(
+                    _evaluate(proposed, client, stats), proposed, missing
+                ):
                     stamp = datetime.now(timezone.utc).isoformat()
                     wire_hash = request_hash(batch.request)
                     first_index = next(iter(batch.owners.values()))[0]
