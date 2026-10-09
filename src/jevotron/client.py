@@ -260,8 +260,6 @@ def from_openai(data: Any) -> dict[str, Any]:
             "answers": answers,
             "usage": data.get("usage", {}),
         }
-    except RefusalError:
-        raise
     except (KeyError, TypeError, ValueError):
         raise JevError(
             "OpenAI Decisions returned an invalid or incomplete assessment; not cached"

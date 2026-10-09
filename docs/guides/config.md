@@ -73,9 +73,10 @@ Caveats:
 - Pricing differs: OpenAI charges $0.10 per million input tokens and Jev charges
   $0.042, with no output charge from either. Token estimates and `--batch-tokens`
   budgets are based on Jev's tokenizer and context limits.
-- If the API declines a question (a `refusal` answer), the scan stops and caches
-  nothing from that request. Entries assessed in earlier requests stay cached;
-  others in the same batch do not. The error names the refused entry and field.
+- If the API declines a question (a `refusal` answer), the scan stops and the
+  refused request's answers are not cached. Entries assessed in earlier requests
+  stay cached; others in the same batch do not. If an oversized request was split,
+  parts that were answered before the refusal may already be cached. The error names the refused entry and field.
   A rerun usually hits the same refusal, so exclude or edit that entry to continue.
 - jevotron sends text only. Image input is not used.
 - Scores from different models are not directly comparable. Re-check thresholds

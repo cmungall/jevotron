@@ -236,3 +236,38 @@ def test_refusal_names_entry_and_field_and_caches_nothing(cache_path, batch_size
     else:
         with pytest.raises(JevError, match="OPENAI_API_KEY"):
             list(scan(chunks[:1], config, cache=cache_path, batch_size=batch_size))
+
+
+def test_refusal_after_split_keeps_answered_half(cache_path):
+    def handler(request):
+        body = json.loads(request.content)
+        if len(body["questions"]) > 1:
+            return httpx.Response(
+                400, json={"error": {"code": "context_length_exceeded"}}
+            )
+        [q] = body["questions"]
+        if '"field_value": "BAD"' in q["instructions"]:
+            answer = {"type": "refusal", "name": q["name"]}
+        else:
+            answer = {
+                "type": "choice",
+                "name": q["name"],
+                "choice": "NORMAL",
+                "probabilities": [
+                    {"value": "NORMAL", "probability": 0.9},
+                    {"value": "ANOMALY", "probability": 0.1},
+                ],
+                "confidence": 0.9,
+            }
+        return httpx.Response(200, json={"model": "gpt-6-luna", "answers": [answer]})
+
+    chunks = [Chunk("ok", {"v": "fine"}), Chunk("bad", {"w": "BAD"})]
+    config = Config(model="gpt-6-luna")
+    with client(handler) as c, pytest.raises(RefusalError) as error:
+        list(scan(chunks, config, cache=cache_path, client=c, batch_size=2))
+    assert "field /w of entry 'bad'" in str(error.value)
+    assert "answers were not cached" in str(error.value)
+    assert isinstance(error.value.__cause__, RefusalError)
+    # The half answered before the refusal was cached.
+    [cached] = scan(chunks[:1], config, cache=cache_path, batch_size=2)
+    assert cached.cached

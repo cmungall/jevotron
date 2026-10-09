@@ -216,10 +216,10 @@ def _refusals_named(results, batch: Batch, plans: list[EntryPlan]):
         path = plan.paths[int(field.removeprefix("field_"))]
         raise RefusalError(
             f"{service_name(batch.request.get('model'))} declined to assess field "
-            f"{path} of entry {plan.chunk.id!r}; nothing from that request was "
-            "cached. Exclude or edit that entry to continue.",
+            f"{path} of entry {plan.chunk.id!r}; the refused request's answers "
+            "were not cached. Exclude or edit that entry to continue.",
             error.question,
-        ) from None
+        ) from error
 
 
 def _result(
