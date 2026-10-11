@@ -89,6 +89,12 @@ and primary keys supply table-qualified IDs. See the
 variable is used automatically; preview and fully cached runs need no key.
 [Full setup instructions](docs/quickstart.md#set-your-api-key).
 
+**OpenAI Decisions:** `--model gpt-6-luna` (or `Config(model="gpt-6-luna")`)
+sends the same choice questions to the
+[OpenAI Decisions API](https://developers.openai.com/api/docs/guides/decisions)
+instead, using `OPENAI_API_KEY`. Caching, batching, and output are unchanged.
+[Details and caveats](docs/guides/config.md#use-openai-decisions).
+
 For development, use `uv sync` and `uv run jevotron ...`. The CLI uses **Typer**,
 with grouped help and shell completion:
 

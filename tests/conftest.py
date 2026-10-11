@@ -46,3 +46,4 @@ def cache_path(tmp_path):
 def offline(monkeypatch):
     """The unit suite must never use the developer's real credentials."""
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)

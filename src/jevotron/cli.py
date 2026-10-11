@@ -79,7 +79,7 @@ Exemplars = Annotated[
 Model = Annotated[
     str | None,
     typer.Option(
-        help="Jev model; defaults to jev-1.13.0 or the config value.",
+        help="Model; defaults to jev-1.13.0 or the config value. gpt-* models (e.g. gpt-6-luna) use OpenAI Decisions with OPENAI_API_KEY.",
         rich_help_panel="Input & guidance",
     ),
 ]

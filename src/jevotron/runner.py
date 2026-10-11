@@ -19,7 +19,16 @@ from jevotron.batching import (
     windows,
 )
 from jevotron.cache import Cache
-from jevotron.client import ContextLimitError, JevClient, JevError
+from jevotron.client import (
+    ContextLimitError,
+    JevClient,
+    JevError,
+    OpenAIDecisionsClient,
+    RefusalError,
+    is_openai_model,
+    service_name,
+    to_openai,
+)
 from jevotron.config import Config
 from jevotron.models import Chunk, FieldResult, Result, json_text, resolve
 from jevotron.requests import make_request, request_hash
@@ -84,6 +93,9 @@ def preview(
                 },
                 "cache_assumption": "all misses",
             }
+            # Cache identities use the canonical request; show what is sent.
+            if is_openai_model(config.model):
+                item["wire_request"] = to_openai(batch.request)
             # Keep the familiar entry preview fields for single-entry requests.
             if len(indexes) == 1:
                 item.update(
@@ -143,7 +155,8 @@ def validate_response(response: Any, request: dict) -> None:
         json_text(response)
     except (KeyError, TypeError, ValueError, OverflowError):
         raise JevError(
-            "Jev returned an invalid or incomplete assessment; not cached"
+            f"{service_name(request.get('model'))} returned an invalid or incomplete assessment; "
+            "not cached"
         ) from None
 
 
@@ -165,7 +178,8 @@ def _evaluate(batch: Batch, client: Evaluator, stats: ScanStats, depth=0):
         keys = list(batch.owners)
         if len(keys) == 1 or depth >= 10:
             raise ContextLimitError(
-                "Jev rejected the context size after splitting; reduce guidance, "
+                f"{service_name(batch.request.get('model'))} rejected the context "
+                "size after splitting; reduce guidance, "
                 "exemplars, or entry context. Nothing was truncated."
             ) from error
         middle = len(keys) // 2
@@ -187,6 +201,25 @@ def _evaluate(batch: Batch, client: Evaluator, stats: ScanStats, depth=0):
         if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
             setattr(stats, name, getattr(stats, name) + value)
     yield batch, response
+
+
+def _refusals_named(results, batch: Batch, plans: list[EntryPlan]):
+    """Say which entry and field was refused, so it can be excluded or edited."""
+    try:
+        yield from results
+    except RefusalError as error:
+        owner = batch.owners.get(error.question)
+        if owner is None:
+            raise
+        index, field = owner
+        plan = plans[index]
+        path = plan.paths[int(field.removeprefix("field_"))]
+        raise RefusalError(
+            f"{service_name(batch.request.get('model'))} declined to assess field "
+            f"{path} of entry {plan.chunk.id!r}; the refused request's answers "
+            "were not cached. Exclude or edit that entry to continue.",
+            error.question,
+        ) from error
 
 
 def _result(
@@ -271,12 +304,18 @@ def scan(
             if not missing:
                 continue
             if client is None:
-                owned_client = JevClient()
+                owned_client = (
+                    OpenAIDecisionsClient
+                    if is_openai_model(config.model)
+                    else JevClient
+                )()
                 client = owned_client
             responses = [{"answers": {}} for _ in missing]
             provenance = [[] for _ in missing]
             for proposed in pack(missing, options):
-                for batch, response in _evaluate(proposed, client, stats):
+                for batch, response in _refusals_named(
+                    _evaluate(proposed, client, stats), proposed, missing
+                ):
                     stamp = datetime.now(timezone.utc).isoformat()
                     wire_hash = request_hash(batch.request)
                     first_index = next(iter(batch.owners.values()))[0]
@@ -292,7 +331,8 @@ def scan(
                             != response["model"]
                         ):
                             raise JevError(
-                                "Jev model changed while assessing a split entry; not cached"
+                                f"{service_name(config.model)} model changed while "
+                                "assessing a split entry; not cached"
                             )
                         entry_response["model"] = response["model"]
                         entry_response["answers"][field] = response["answers"][key]
